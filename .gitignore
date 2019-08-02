@@ -1,0 +1,5 @@
+*.o
+kbrace_client
+kbrace_server
+tags
+
