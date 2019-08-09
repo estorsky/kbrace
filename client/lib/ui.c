@@ -51,33 +51,26 @@ void uiRun(){
 int textprint(char text[][SWORDMAX], int printoff, int lowline){
     int i = 0, j = 0, sltext = 1, textlim = SCMAX;
     if (printoff == 0)
-        wclear(win_text);
+        wclear(win_text);   
     while(text[i][0] != '\0'){
-        j = 0;
-        while(text[i][j] != '\0'){
-            textlim--;
-            j++;
-        }
+        textlim -= strlen(text[i]);
         if (textlim <= 0){
-            if (textlim + j != 0 && printoff == 0) 
-                wprintw(win_text, "\n");
-            textlim = SCMAX - j;
+            if (printoff == 0 && textlim < 0)
+                waddch(win_text, '\n');
+            textlim = SCMAX - strlen(text[i]);
             sltext++;
         }
-        else 
-            if (textlim + j != SCMAX){
-                if (printoff == 0)
-                    wprintw(win_text, " ");
-                textlim--;
-            }
         if (printoff == 0){
-            if (lowline == i){
+            if (lowline == i)
                 wattron(win_text, A_UNDERLINE);
-                waddstr(win_text, text[i]);
-                wattroff(win_text, A_UNDERLINE);
+            while(text[i][j+1] != '\0'){
+                    waddch(win_text, text[i][j]);
+                j++;
             }
-            else
-                waddstr(win_text, text[i]);
+            if (lowline == i)
+                wattroff(win_text, A_UNDERLINE);
+            waddch(win_text, ' ');
+            j = 0;
         }
         i++;    
     }
@@ -207,6 +200,7 @@ void uiEntryBack(int i){
 void uiEntryClear(){
     if (uimod != MODBATLLE)
         return;
+    memset(entrybuffer, 0, SWORDMAX);
     wclear(win_entry);
     wrefresh(win_entry);    
 }
@@ -219,7 +213,7 @@ void uiProgPrint(struct plaerstr **p, int n){
     for (i = 0; i < n; i++){
         mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
         if (p[i]->prog == 100)
-            wprintw(win_prog, "SPEED %d   MISS %d  TIME %.2f", p[i]->speed, p[i]->miss, p[i]->time);
+            mvwprintw(win_prog, i, SNAMEMAX, "SPEED %d   MISS %d  TIME %.2f", p[i]->speed, p[i]->miss, p[i]->time);
         else 
             mvwhline(win_prog, i, SNAMEMAX, '=', (int)(((float)SCMAX-SNAMEMAX)/100*p[i]->prog));
     }
