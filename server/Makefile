@@ -1,7 +1,7 @@
 CC = gcc
 FLAGS = -pedantic -Wall -Wextra -O2 # -Werror
 CFLAGS = -g
-LIBS = #-lpthread -lcurses
+LIBS = -lpthread #-lcurses
 SRCDIR = src
 LIBDIR = lib
 OBJDIR = obj
