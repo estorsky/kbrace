@@ -243,7 +243,7 @@ void uiProgPrint(struct plaerstr **p, int n){
     wclear(win_prog);
     int i;
     for (i = 0; i < n; i++){
-        if (p[i]->name[0] != '\n'){
+        if (p[i]->name[0] != '\0'){
             mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
             if (p[i]->prog == 100)
                 mvwprintw(win_prog, i, SNAMEMAX, "SPEED %3d   MISS %3d  TIME %3.2f", p[i]->speed, p[i]->miss, p[i]->time);
