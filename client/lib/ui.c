@@ -31,6 +31,7 @@ int uimod = MODOFF;
 pthread_mutex_t ncur = PTHREAD_MUTEX_INITIALIZER;
 
 void uiInit(){
+    pthread_mutex_lock(&ncur);
     if (uimod != MODOFF)
         return;
     initscr();
@@ -39,6 +40,7 @@ void uiInit(){
     refresh();
     keypad(stdscr, true);
     uimod = MODINIT;
+    pthread_mutex_unlock(&ncur);
 }
 
 void uiRun(){
@@ -241,15 +243,17 @@ void uiProgPrint(struct plaerstr **p, int n){
     wclear(win_prog);
     int i;
     for (i = 0; i < n; i++){
-        mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
-        if (p[i]->prog == 100)
-            mvwprintw(win_prog, i, SNAMEMAX, "SPEED %3d   MISS %3d  TIME %3.2f", p[i]->speed, p[i]->miss, p[i]->time);
-        else{
-            mvwprintw(win_prog, i, SNAMEMAX, "[");
-            mvwhline(win_prog, i, SNAMEMAX+1, '=', (int)(((float)SCMAX-SNAMEMAX-7)/100*p[i]->prog));
-            mvwprintw(win_prog, i, SCMAX-5, "]");
+        if (p[i]->name[0] != '\n'){
+            mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
+            if (p[i]->prog == 100)
+                mvwprintw(win_prog, i, SNAMEMAX, "SPEED %3d   MISS %3d  TIME %3.2f", p[i]->speed, p[i]->miss, p[i]->time);
+            else{
+                mvwprintw(win_prog, i, SNAMEMAX, "[");
+                mvwhline(win_prog, i, SNAMEMAX+1, '=', (int)(((float)SCMAX-SNAMEMAX-7)/100*p[i]->prog));
+                mvwprintw(win_prog, i, SCMAX-5, "]");
+            }
+            mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);
         }
-        mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);
     }
     wrefresh(win_prog);
     if (uimod == MODBATLLE)
