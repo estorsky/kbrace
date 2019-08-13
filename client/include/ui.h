@@ -6,14 +6,16 @@ struct plaerstr{
     int prog;
     int speed;
     int miss;
-    float time;
+    double time;
+    char state;
 };
 
+void uiInit();
 void uiRun();
-int uiStartBattle(char [][15]);
+void uiStartBattle(char [][15]);
 void uiTextLowline(char [][15], int);
 void uiFinishBattle();
-void uiStatPrint(int, int, float);
+void uiStatPrint(int, int, double);
 void uiEntryPrint(char, int);
 void uiEntryBack(int);
 void uiEntryClear();
