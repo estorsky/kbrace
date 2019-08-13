@@ -10,9 +10,11 @@
 #define SNAMEMAX 10 //maximum name size
 #define SLEEPTIME 2
 
-#define MODRUN 0
-#define MODBATLLE 1
-#define MODFINISH 2
+#define MODOFF 0
+#define MODINIT 1
+#define MODRUN 2
+#define MODBATLLE 3
+#define MODFINISH 4
 
 #define SLMAX LINES - 2
 #define SCMAX COLS - 2
@@ -24,21 +26,30 @@ WINDOW *win_text;
 WINDOW *win_entry;
 WINDOW *win_prog;
 char entrybuffer[SWORDMAX];
-int uimod;
+int uimod = MODOFF;
 
 pthread_mutex_t ncur = PTHREAD_MUTEX_INITIALIZER;
 
-void init(){
+void uiInit(){
+    if (uimod != MODOFF)
+        return;
     initscr();
     cbreak();
     noecho();
     refresh();
     keypad(stdscr, true);
+    uimod = MODINIT;
 }
 
 void uiRun(){
     pthread_mutex_lock(&ncur);
-    init();
+    if (uimod != MODINIT && uimod != MODFINISH)
+        return;
+    if (uimod == MODFINISH){
+        delwin(win_stat);
+        delwin(win_prog);
+        clear();
+    }
     box(stdscr, 0, 0);
     win_stat = newwin(7, 8, LINES/2-4, COLS/2-4);
     wprintw(win_stat,"########");
@@ -69,7 +80,7 @@ int textprint(char text[][SWORDMAX], int printoff, int lowline){
         if (printoff == 0){
             if (lowline == i)
                 wattron(win_text, A_UNDERLINE);
-            while(text[i][j+1] != '\0'){
+            while(text[i][j] != ' ' && text[i][j] != '\0'){
                 waddch(win_text, text[i][j]);
                 j++;
             }
@@ -85,10 +96,10 @@ int textprint(char text[][SWORDMAX], int printoff, int lowline){
     return sltext;
 }
 
-int uiStartBattle(char text[][SWORDMAX]){
+void uiStartBattle(char text[][SWORDMAX]){
     pthread_mutex_lock(&ncur);
     if (uimod != MODRUN)
-        return 0;
+        return;
     delwin(win_stat);
     clear();
 
@@ -147,9 +158,7 @@ int uiStartBattle(char text[][SWORDMAX]){
     wrefresh(win_text);
     wrefresh(win_entry);
     uimod = MODBATLLE;
-
     pthread_mutex_unlock(&ncur);
-    return slprog;
 }
 
 void uiTextLowline(char text[][SWORDMAX], int n){
@@ -169,18 +178,17 @@ void uiFinishBattle(){
     delwin(win_entry);
     delwin(win_prog);
     win_prog = newwin(SLMAX - SLSTAT - 1, SCMAX, SLSTAT + 2, 1);
-    box(win_prog, 0, 0);
     wrefresh(win_prog);
     uimod = MODFINISH;
     pthread_mutex_unlock(&ncur);
 }
 
-void uiStatPrint(int speed, int miss, float time){
+void uiStatPrint(int speed, int miss, double time){
     pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
     wclear(win_stat);
-    wprintw(win_stat, "SPEED %d   MISS %d   TIME %.2f", speed, miss, time);
+    wprintw(win_stat, "SPEED %3d   MISS %3d   TIME %3.2f", speed, miss, time);
     wrefresh(win_stat);
     if (uimod == MODBATLLE)
         wrefresh(win_entry);
@@ -235,9 +243,13 @@ void uiProgPrint(struct plaerstr **p, int n){
     for (i = 0; i < n; i++){
         mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
         if (p[i]->prog == 100)
-            mvwprintw(win_prog, i, SNAMEMAX, "SPEED %d   MISS %d  TIME %.2f", p[i]->speed, p[i]->miss, p[i]->time);
-        else
-            mvwhline(win_prog, i, SNAMEMAX, '=', (int)(((float)SCMAX-SNAMEMAX)/100*p[i]->prog));
+            mvwprintw(win_prog, i, SNAMEMAX, "SPEED %3d   MISS %3d  TIME %3.2f", p[i]->speed, p[i]->miss, p[i]->time);
+        else{
+            mvwprintw(win_prog, i, SNAMEMAX, "[");
+            mvwhline(win_prog, i, SNAMEMAX+1, '=', (int)(((float)SCMAX-SNAMEMAX-7)/100*p[i]->prog));
+            mvwprintw(win_prog, i, SCMAX-5, "]");
+        }
+        mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);
     }
     wrefresh(win_prog);
     if (uimod == MODBATLLE)
@@ -248,6 +260,6 @@ void uiProgPrint(struct plaerstr **p, int n){
 void uiEnd(){
     pthread_mutex_lock(&ncur);
     endwin();
+    uimod = MODOFF;
     pthread_mutex_unlock(&ncur);
 }
-
