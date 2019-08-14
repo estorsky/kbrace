@@ -89,14 +89,14 @@ void *player (void *arg) {
         pthread_mutex_unlock(&for_cond);
 
         bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
-        printf("send text %db\n", bytes);
+        // printf("send text %db\n", bytes);
 
         int num_pack = 0;
         int exit_race = 1;
         while (exit_race) {
-            printf("\n");
+            // printf("\n");
             bytes = recv(fd, &player_stat, sizeof(player_stat), 0);
-            printf("bytes %d\n", bytes);
+            // printf("bytes %d\n", bytes);
             printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,

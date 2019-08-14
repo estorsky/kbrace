@@ -235,6 +235,8 @@ void exitprog() {
 }
 
 void hdl (int sig) {
+    state = 'q';
+    pthread_join(tid[1], NULL);
     exitprog();
 }
 
