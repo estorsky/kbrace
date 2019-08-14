@@ -66,7 +66,7 @@ void *player (void *arg) {
     int player_id = fd-3;
     struct stat player_stat;
     int usr_session_id = 0;
-    printf("# player id %d connected\n", player_id);
+    printf("# player id = %d connected!\n", player_id);
 
     pthread_mutex_lock(&ou);
     online_users++;
@@ -97,7 +97,7 @@ void *player (void *arg) {
             // printf("\n");
             bytes = recv(fd, &player_stat, sizeof(player_stat), 0);
             // printf("bytes %d\n", bytes);
-            printf("## session #%d player %s: id %2d, speed %3d, miss %2d, time %4.2f %c [%d]\n",
+            printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,
                     player_stat.player_id,
@@ -107,8 +107,7 @@ void *player (void *arg) {
                     player_stat.state,
                     num_pack);
 
-            strncpy(stats[usr_session_id][player_id].name, player_stat.name,
-                    sizeof(stats[0][0].name));
+            strncpy(stats[usr_session_id][player_id].name, player_stat.name, MAX_USERNAME);
             stats[usr_session_id][player_id].player_id = player_stat.player_id;
             stats[usr_session_id][player_id].speed = player_stat.speed;
             stats[usr_session_id][player_id].miss = player_stat.miss;
@@ -122,19 +121,18 @@ void *player (void *arg) {
             }
 
             if (player_stat.state == 'q' || player_stat.state == 'x') {
-                // printf("q or x\n");
+                printf("q or x\n");
                 break;
             }
 
-            bytes = send(fd, stats[usr_session_id],
-                    sizeof(player_stat) * MAX_PLAYERS, 0);
+            bytes = send(fd, stats[usr_session_id], sizeof(player_stat) * MAX_PLAYERS, 0);
                     // printf("send %db\n", bytes);
             num_pack++;
             // sleep(1);
             usleep(500000);
         }
 
-        printf("# session #%d player %s end race: id %2d, speed %3d, miss %2d, time %4.2f\n",
+        printf("## session #%d player %s end race: id %3d, speed %3d, miss %3d, time %.2f\n",
                 usr_session_id,
                 player_stat.name,
                 player_stat.player_id,
@@ -163,7 +161,7 @@ void *session (void *arg) {
 
     while (true) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            strncpy(stats[session_id][i].name, &zero, sizeof(stats[0][0].name));
+            strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
             stats[session_id][i].player_id = -1;
             stats[session_id][i].speed = 0;
             stats[session_id][i].miss = 0;

@@ -136,7 +136,7 @@ void *sender () {
         pthread_mutex_unlock(&for_cond);
 
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            strncpy(stats[i].name, &zero, sizeof(stats[0]));
+            strncpy(stats[i].name, &zero, MAX_USERNAME);
             stats[i].player_id = 0;
             stats[i].speed = 0;
             stats[i].miss = 0;
@@ -144,7 +144,7 @@ void *sender () {
             stats[i].prog = 0;
             stats[i].state = zero;
 
-            strncpy(p[i]->name, &zero, sizeof(p[0]->name));
+            strncpy(p[i]->name, &zero, MAX_USERNAME);
             p[i]->prog = 0;
             p[i]->speed = 0;
             p[i]->miss = 0;
@@ -156,7 +156,7 @@ void *sender () {
         // pthread_mutex_lock(&start_battle);
         while (reset_sender) {
 
-            strncpy(player_stat.name, ppasswd->pw_name, sizeof(player_stat.name));
+            strncpy(player_stat.name, ppasswd->pw_name, MAX_USERNAME);
             player_stat.player_id = player_id;
             player_stat.speed = cpm;
             player_stat.miss = miss;
@@ -174,7 +174,7 @@ void *sender () {
             int i = 1;
             for(int n = 0; n < MAX_PLAYERS; n++) {
                 if ( n == player_id ) {
-                    strncpy(p[0]->name, stats[n].name, sizeof(p[0]->name));
+                    strncpy(p[0]->name, stats[n].name, MAX_USERNAME);
                     p[0]->prog = stats[n].prog;
                     p[0]->state = stats[n].state;
                     if (p[0]->prog >= 100) {
@@ -186,7 +186,7 @@ void *sender () {
                     }
                 } else {
                     if (strcmp(stats[n].name, "")) {
-                        strncpy(p[i]->name, stats[n].name, sizeof(p[0]->name));
+                        strncpy(p[i]->name, stats[n].name, MAX_USERNAME);
                         p[i]->prog = stats[n].prog;
                         p[i]->state = stats[n].state;
                         if (p[i]->prog >= 100){
@@ -206,7 +206,6 @@ void *sender () {
             break;
         }
     }
-    pthread_exit(NULL);
 }
 
 struct plaerstr **createstr(int n){
