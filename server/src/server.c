@@ -18,13 +18,13 @@
 #define false 0
 
 #define PORT 1337
-#define DELAY_WAIT 5
+#define DELAY_WAIT 15
 #define MAX_PLAYERS 30
 #define MAX_USERNAME 10
 #define MAX_WORD_LEN 15
 #define MAX_WORDS 100
 
-#define LIM_PACK 600
+#define LIM_PACK 900
 #define NUM_STRUCTS 100
 
 char text[100][15] = {{"There "},{"are "},{"different "},{"kinds "},
@@ -36,9 +36,6 @@ char text[100][15] = {{"There "},{"are "},{"different "},{"kinds "},
     {"There "},{"are "},{"two "},{"types "},{"of "},{"animals: "},
     {"domestic "},{"and "},{"wild. "},{"People "},{"keep "},{"pets "},{"in "},
     {"their "},{"homes."},{'\0'}};
-// char text [MAX_LEN_TEXT] = "404";
-// char text [MAX_WORDS][MAX_WORD_LEN] = { {"Alice "}, {"was "}, {"beginning "}, {"to "},
-    // {"get "}, {"very "}, {"tired "}, {"of "}, {"sitting "}, {"by "}, {"\0"} };
 
 int session_num_users = 0;
 int session_id = 0;
@@ -76,8 +73,6 @@ void *player (void *arg) {
     pthread_mutex_unlock(&ou);
 
     send(fd, &player_id, sizeof(player_id), 0);
-    // recv(fd, &player_stat.name, sizeof(player_stat.name), 0);
-
 
     int exit_session = 1;
     while (exit_session) {
@@ -93,16 +88,16 @@ void *player (void *arg) {
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
-        // int cur_session_num_users = session_num_users;
-        // send(fd, &cur_session_num_users, sizeof(session_num_users), 0);
-        send(fd, &text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+        bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+        printf("send text %db\n", bytes);
 
         int num_pack = 0;
         int exit_race = 1;
         while (exit_race) {
+            printf("\n");
             bytes = recv(fd, &player_stat, sizeof(player_stat), 0);
-            // printf("bytes %d\n", bytes);
-            /* printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %.2f %c [%d] \n",
+            printf("bytes %d\n", bytes);
+            printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,
                     player_stat.player_id,
@@ -110,7 +105,7 @@ void *player (void *arg) {
                     player_stat.miss,
                     player_stat.time,
                     player_stat.state,
-                    num_pack); */
+                    num_pack);
 
             strncpy(stats[usr_session_id][player_id].name, player_stat.name, MAX_USERNAME);
             stats[usr_session_id][player_id].player_id = player_stat.player_id;
@@ -120,15 +115,21 @@ void *player (void *arg) {
             stats[usr_session_id][player_id].prog = player_stat.prog;
             stats[usr_session_id][player_id].state = player_stat.state;
 
-            if (bytes == 0 || player_stat.state == 'x' || num_pack > LIM_PACK) {
-                exit_race = 0;
-            } else {
-                for (int n = 0; n < MAX_PLAYERS; n++) {
-                    send(fd, &stats[usr_session_id], sizeof(stats[usr_session_id]), 0);
-                }
+            if (bytes == 0 || num_pack > LIM_PACK) {
+                stats[usr_session_id][player_id].state = 'q';
+                break;
             }
+
+            if (player_stat.state == 'q' || player_stat.state == 'x') {
+                printf("q or x\n");
+                break;
+            }
+
+            bytes = send(fd, stats[usr_session_id], sizeof(player_stat) * MAX_PLAYERS, 0);
+                    // printf("send %db\n", bytes);
             num_pack++;
-            sleep(1);
+            // sleep(1);
+            usleep(500000);
         }
 
         printf("## session #%d player %s end race: id %3d, speed %3d, miss %3d, time %.2f\n",
@@ -139,8 +140,9 @@ void *player (void *arg) {
                 player_stat.miss,
                 player_stat.time);
 
-        if (bytes == 0 || num_pack > LIM_PACK) {
-            exit_session = 0;
+        if (player_stat.state == 'q' || bytes == 0 || num_pack > LIM_PACK) {
+            break;
+            // exit_session = 0;
         }
     }
 
@@ -165,12 +167,12 @@ void *session (void *arg) {
             stats[session_id][i].miss = 0;
             stats[session_id][i].time = 0;
             stats[session_id][i].prog = 0;
-            //state
+            stats[session_id][i].state = zero;
         }
 
         pthread_mutex_lock(&start_play);
         printf("new iteration session\n");
-        // strncpy(text, "Alice was beginning to get very tired of sitting by", sizeof(text));
+        // rand new text
 
         // pthread_mutex_lock(&nu);
         // pthread_mutex_unlock(&nu);
@@ -182,14 +184,12 @@ void *session (void *arg) {
         pthread_cond_broadcast(&cond);
         pthread_mutex_unlock(&for_cond);
 
-        // sleep(5);
         printf("session #%d starting! players in session: %d, total players:%d\n",
                 session_id,
                 session_num_users,
                 online_users);
 
         session_id++;
-        // sleep(5);
         session_num_users = 0;
 
         if (session_id > NUM_STRUCTS) {
@@ -215,7 +215,6 @@ int main(int argc, char *argv[]) {
     pthread_t tid[MAX_PLAYERS];
     struct sockaddr_in socket_addr[MAX_PLAYERS];
     int i;
-    //singnal header
 
     socket_fds[0] = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fds[0] < 0) {
@@ -252,7 +251,6 @@ int main(int argc, char *argv[]) {
         // make_thread(&gameplay, &socket_fds[i]);
     }
 
-    //Closing the server socket
     close(socket_fds[0]);
 
     return 0;

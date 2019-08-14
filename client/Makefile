@@ -1,7 +1,7 @@
 CC = gcc
 FLAGS = -pedantic -Wall -Wextra -O2 # -Werror
 CFLAGS = -g
-LIBS = -lpthread -lcurses
+LIBS = -lpthread $(shell ncursesw5-config --libs)
 SRCDIR = src
 LIBDIR = lib
 OBJDIR = obj
@@ -13,7 +13,7 @@ EXE = ../kbrace_client
 
 .PHONY: all clean
 
-all: $(EXE)
+all: mkdir $(EXE)
 
 $(EXE): $(OBJ)
 	$(CC) $(OBJ) -o $@ $(LIBS)
@@ -24,7 +24,11 @@ $(OBJDIR)/%.o: $(LIBDIR)/%.c
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $(FLAGS) -c $< -o $@
 
+mkdir:
+	mkdir -p $(OBJDIR)
+
 clean:
-	rm -rf $(OBJ)
+	# rm -rf $(OBJ)
+	rm -rf $(OBJDIR)
 	rm -rf $(EXE)
 
