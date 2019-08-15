@@ -39,6 +39,7 @@ int num_words = 0;
 int progress = 0;
 
 char state = 'x';
+int online = 0;
 
 struct passwd *ppasswd;
 struct stat player_stat;
@@ -106,7 +107,7 @@ void *stat () {
 
         reset_stopwatch = 1;
         while (reset_stopwatch) {
-            uiStatPrint(cpm, miss, sec);
+            uiStatPrint(cpm, miss, sec, online);
             sleep(1);
             sec++;
         }
@@ -128,6 +129,7 @@ void *sender () {
     while(true) {
         memset(text, 0, sizeof(text[0][0]) * MAX_WORDS * MAX_WORD_LEN);
         state = 'v';
+        recv(sockfd, &online, sizeof(online), 0);
         bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
         // printf("text? %db %s\n", bytes, text[0]);
 
@@ -332,7 +334,7 @@ int main(int argc, char *argv[]) {
             if (word_count > 1) {
                 cur_t = wtime() - cur_t;
                 cpm = ((cur_len_words)/(cur_t / 60));
-                uiStatPrint(cpm, miss, sec);
+                uiStatPrint(cpm, miss, sec, online);
 
                 cur_t = wtime();
                 cur_len_words = 0;
@@ -379,7 +381,7 @@ int main(int argc, char *argv[]) {
                             err++;
                             if (err == 1) {
                                 miss++;
-                                uiStatPrint(cpm, miss, sec);
+                                uiStatPrint(cpm, miss, sec, online);
                             }
                         }
                         break;
@@ -400,9 +402,9 @@ int main(int argc, char *argv[]) {
 
         reset_stopwatch = 0;
 
-        uiStatPrint(cpm, miss, race_time);
         uiFinishBattle();
-        // uiProgPrint(p, MAX_PLAYERS);
+        uiStatPrint(cpm, miss, race_time, online);
+        uiProgPrint(p, MAX_PLAYERS);
 
         int exit_lobby = 1;
         char ch = '\0';

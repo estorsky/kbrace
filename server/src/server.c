@@ -88,6 +88,7 @@ void *player (void *arg) {
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
+        send(fd, &online_users, sizeof(online_users), 0);
         bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
         // printf("send text %db\n", bytes);
 
