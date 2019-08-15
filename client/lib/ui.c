@@ -1,6 +1,7 @@
 #include "../include/ui.h"
 
-#include <ncurses.h>
+// #include <ncurses.h>
+#include <ncursesw/curses.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,9 +32,9 @@ int uimod = MODOFF;
 pthread_mutex_t ncur = PTHREAD_MUTEX_INITIALIZER;
 
 void uiInit(){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODOFF)
         return;
+    pthread_mutex_lock(&ncur);
     initscr();
     cbreak();
     noecho();
@@ -44,7 +45,6 @@ void uiInit(){
 }
 
 void uiRun(){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODINIT && uimod != MODFINISH)
         return;
     if (uimod == MODFINISH){
@@ -52,6 +52,7 @@ void uiRun(){
         delwin(win_prog);
         clear();
     }
+    pthread_mutex_lock(&ncur);
     box(stdscr, 0, 0);
     win_stat = newwin(7, 8, LINES/2-4, COLS/2-4);
     wprintw(win_stat,"########");
@@ -99,9 +100,9 @@ int textprint(char text[][SWORDMAX], int printoff, int lowline){
 }
 
 void uiStartBattle(char text[][SWORDMAX]){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODRUN)
         return;
+    pthread_mutex_lock(&ncur);
     delwin(win_stat);
     clear();
 
@@ -164,18 +165,18 @@ void uiStartBattle(char text[][SWORDMAX]){
 }
 
 void uiTextLowline(char text[][SWORDMAX], int n){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE)
         return;
+    pthread_mutex_lock(&ncur);
     textprint(text, 0, n);
     wrefresh(win_entry);
     pthread_mutex_unlock(&ncur);
 }
 
 void uiFinishBattle(){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE)
         return;
+    pthread_mutex_lock(&ncur);
     delwin(win_text);
     delwin(win_entry);
     delwin(win_prog);
@@ -186,9 +187,9 @@ void uiFinishBattle(){
 }
 
 void uiStatPrint(int speed, int miss, double time){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
+    pthread_mutex_lock(&ncur);
     wclear(win_stat);
     wprintw(win_stat, "SPEED %3d   MISS %3d   TIME %3.2f", speed, miss, time);
     wrefresh(win_stat);
@@ -208,9 +209,9 @@ void entryprint(int i){
 }
 
 void uiEntryPrint(char a, int i){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE)
         return;
+    pthread_mutex_lock(&ncur);
     entrybuffer[strlen(entrybuffer)] = a;
     entrybuffer[strlen(entrybuffer)+1] = '\0';
     entryprint(i);
@@ -218,18 +219,18 @@ void uiEntryPrint(char a, int i){
 }
 
 void uiEntryBack(int i){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE)
         return;
+    pthread_mutex_lock(&ncur);
     entrybuffer[strlen(entrybuffer)-1] = '\0';
     entryprint(i);
     pthread_mutex_unlock(&ncur);
 }
 
 void uiEntryClear(){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE)
         return;
+    pthread_mutex_lock(&ncur);
     memset(entrybuffer, 0, SWORDMAX);
     wclear(win_entry);
     wrefresh(win_entry);
@@ -237,13 +238,13 @@ void uiEntryClear(){
 }
 
 void uiProgPrint(struct plaerstr **p, int n){
-    pthread_mutex_lock(&ncur);
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
+    pthread_mutex_lock(&ncur);
     wclear(win_prog);
     int i;
     for (i = 0; i < n; i++){
-        if (p[i]->name[0] != '\n'){
+        if (p[i]->name[0] != '\0'){
             mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
             if (p[i]->prog == 100)
                 mvwprintw(win_prog, i, SNAMEMAX, "SPEED %3d   MISS %3d  TIME %3.2f", p[i]->speed, p[i]->miss, p[i]->time);
