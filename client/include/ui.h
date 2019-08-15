@@ -15,7 +15,7 @@ void uiRun();
 void uiStartBattle(char [][15]);
 void uiTextLowline(char [][15], int);
 void uiFinishBattle();
-void uiStatPrint(int, int, double);
+void uiStatPrint(int, int, double, int);
 void uiEntryPrint(char, int);
 void uiEntryBack(int);
 void uiEntryClear();
