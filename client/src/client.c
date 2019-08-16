@@ -221,17 +221,22 @@ struct plaerstr **createstr (int n) {
 }
 
 void exitprog() {
+    state = 'q';
+    pthread_join(tid[1], NULL);
     uiEnd();
-    pthread_cancel(tid[0]);
-    pthread_cancel(tid[1]);
+    // pthread_cancel(tid[0]);
+    // pthread_cancel(tid[1]);
     close(sockfd);
     exit(0);
 }
 
 void hdl (int sig) {
-    // state = 'q';
-    // pthread_join(tid[1], NULL);
-    exitprog();
+    uiEnd();
+    pthread_cancel(tid[0]);
+    pthread_cancel(tid[1]);
+    sleep(1);
+    close(sockfd);
+    exit(0);
 }
 
 int main(int argc, char *argv[]) {
@@ -350,13 +355,9 @@ int main(int argc, char *argv[]) {
                         j = 0;
                         break;
                     case 27:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     case 18:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     default:
@@ -395,23 +396,19 @@ int main(int argc, char *argv[]) {
         uiStatPrint(cpm, miss, race_time, online);
         uiProgPrint(p, MAX_PLAYERS);
 
-        int exit_lobby = 1;
+        int exit_lobby = 0;
         char ch = '\0';
-        while (exit_lobby) {
+        while (!exit_lobby) {
             ch = getch();
             switch (ch) {
                     case 27:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     case 18:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     default:
-                        exit_lobby = 0;
+                        exit_lobby = 1;
                         break;
             }
         }
