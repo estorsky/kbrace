@@ -49,12 +49,12 @@ void uiRun(){
     if (uimod != MODINIT && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
-    if (uimod == MODINIT){
+    if (uimod == MODINIT){ // first start
         win_stat = newwin(SLSTAT, SCMAX, 1, 1);
         win_help = newwin(1, COLS, LINES-1, 0);
         wattron(win_help, A_STANDOUT);
     }
-    if (uimod == MODFINISH){
+    if (uimod == MODFINISH){ // next start
         delwin(win_prog);
         clear();
         refresh();
@@ -129,9 +129,12 @@ void uiStartBattle(char text[][SWORDMAX]){
     if (uimod != MODRUN)
         return;
     pthread_mutex_lock(&ncur);
+    
+    wclear(win_text); // clear and del hourglass
+    wrefresh(win_text);
     delwin(win_text);
-    clear();
-    curs_set(1);
+
+    curs_set(1); // on cursor (1 = normal mod)
 
     mvhline(SLSTAT + 1, 0, 0, SCMAX+2);
 
@@ -144,16 +147,14 @@ void uiStartBattle(char text[][SWORDMAX]){
 
     win_entry = newwin(SLENTRY, SCMAX, SLSTAT + sltext + 3, 1);
 
-    int slprog = SLMAX - SLSTAT - SLENTRY - sltext - 3;
+    int slprog = SLMAX - SLSTAT - SLENTRY - sltext - 3; // checking free space for win_prog
     if (slprog > 0){
         mvhline(SLSTAT + SLENTRY + sltext + 3, 0, 0, SCMAX+2);
         win_prog = newwin(slprog, SCMAX, SLSTAT + SLENTRY + sltext + 4, 1);
     }
 
     refresh();
-    wrefresh(win_text);
     wrefresh(win_entry);
-    wrefresh(win_help);
     
     timer(sltext);
     
@@ -184,7 +185,6 @@ void uiFinishBattle(){
     win_prog = newwin(SLMAX - SLSTAT - 1, SCMAX, SLSTAT + 2, 1);
     refresh();
     wrefresh(win_prog);
-    wrefresh(win_help);
     uimod = MODFINISH;
     pthread_mutex_unlock(&ncur);
 }
