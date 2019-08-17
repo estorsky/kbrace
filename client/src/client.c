@@ -289,12 +289,14 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         uiRun();
+        uiHelpPrint("waiting text");
 
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
         uiStartBattle(text);
+        uiHelpPrint("[ESC/F10] exit");
 
         miss = 0;
         cpm = 0;
@@ -395,6 +397,7 @@ int main(int argc, char *argv[]) {
         uiFinishBattle();
         uiStatPrint(cpm, miss, race_time, online);
         uiProgPrint(p, MAX_PLAYERS);
+        uiHelpPrint("[ESC/F10] exit | another key run new race");
 
         int exit_lobby = 0;
         char ch = '\0';

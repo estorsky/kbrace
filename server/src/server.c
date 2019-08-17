@@ -28,13 +28,13 @@
 #define NUM_STRUCTS 100
 
 char text[100][15] = {{"There "},{"are "},{"different "},{"kinds "},
-    {"of "},{"animals "},{"on "},{"our "},{"planet, "},{"and "},{"all "},
-    {"of "},{"them "},{"are "},{"very "},{"important "},{"for "},{"it. "},
-    {"For " },{"example, "},{"everybody "},{"knows "},{"that "},{"the "},
-    {"sharks " },{"are " },{"dangerous "},{"for "},{"people, "},{"but "},
-    {"they "},{"are "},{"useful "},{"for "},{"cleaning "},{"seawater. "},
-    {"There "},{"are "},{"two "},{"types "},{"of "},{"animals: "},
-    {"domestic "},{"and "},{"wild. "},{"People "},{"keep "},{"pets "},{"in "},
+    // {"of "},{"animals "},{"on "},{"our "},{"planet, "},{"and "},{"all "},
+    // {"of "},{"them "},{"are "},{"very "},{"important "},{"for "},{"it. "},
+    // {"For " },{"example, "},{"everybody "},{"knows "},{"that "},{"the "},
+    // {"sharks " },{"are " },{"dangerous "},{"for "},{"people, "},{"but "},
+    // {"they "},{"are "},{"useful "},{"for "},{"cleaning "},{"seawater. "},
+    // {"There "},{"are "},{"two "},{"types "},{"of "},{"animals: "},
+    // {"domestic "},{"and "},{"wild. "},{"People "},{"keep "},{"pets "},{"in "},
     {"their "},{"homes."},{'\0'}};
 
 int session_num_users = 0;
@@ -171,7 +171,7 @@ void *session (void *arg) {
     while (true) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
-            stats[session_id][i].player_id = -1;
+            stats[session_id][i].player_id = 0;
             stats[session_id][i].speed = 0;
             stats[session_id][i].miss = 0;
             stats[session_id][i].time = 0;
