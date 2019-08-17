@@ -55,9 +55,9 @@ void uiRun(){
         wattron(win_help, A_STANDOUT);
     }
     if (uimod == MODFINISH){
-        delwin(win_stat);
         delwin(win_prog);
         clear();
+        refresh();
     }
     curs_set(0);
     win_text = newwin(7, 8, LINES/2-4, COLS/2-4);
@@ -153,6 +153,7 @@ void uiStartBattle(char text[][SWORDMAX]){
     refresh();
     wrefresh(win_text);
     wrefresh(win_entry);
+    wrefresh(win_help);
     
     timer(sltext);
     
@@ -183,6 +184,7 @@ void uiFinishBattle(){
     win_prog = newwin(SLMAX - SLSTAT - 1, SCMAX, SLSTAT + 2, 1);
     refresh();
     wrefresh(win_prog);
+    wrefresh(win_help);
     uimod = MODFINISH;
     pthread_mutex_unlock(&ncur);
 }
