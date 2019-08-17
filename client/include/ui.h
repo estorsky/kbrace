@@ -20,6 +20,7 @@ void uiEntryPrint(char, int);
 void uiEntryBack(int);
 void uiEntryClear();
 void uiProgPrint(struct plaerstr **, int n);
+void uiHelpPrint(char []);
 void uiEnd();
 
 #endif
