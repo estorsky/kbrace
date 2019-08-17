@@ -26,6 +26,7 @@ WINDOW *win_stat;
 WINDOW *win_text;
 WINDOW *win_entry;
 WINDOW *win_prog;
+WINDOW *win_help;
 char entrybuffer[SWORDMAX];
 int uimod = MODOFF;
 
@@ -48,22 +49,27 @@ void uiRun(){
     if (uimod != MODINIT && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
+    if (uimod == MODINIT){
+        win_stat = newwin(SLSTAT, SCMAX, 1, 1);
+        win_help = newwin(1, COLS, LINES-1, 0);
+        wattron(win_help, A_STANDOUT);
+    }
     if (uimod == MODFINISH){
         delwin(win_stat);
         delwin(win_prog);
         clear();
     }
-    box(stdscr, 0, 0);
-    win_stat = newwin(7, 8, LINES/2-4, COLS/2-4);
-    wprintw(win_stat,"########");
-    wprintw(win_stat,"#      #");
-    wprintw(win_stat," #    # ");
-    wprintw(win_stat,"  #  #  ");
-    wprintw(win_stat," #    # ");
-    wprintw(win_stat,"#      #");
-    wprintw(win_stat,"########");
-    refresh();
-    wrefresh(win_stat);
+    curs_set(0);
+    win_text = newwin(7, 8, LINES/2-4, COLS/2-4);
+    wprintw(win_text,"########");
+    wprintw(win_text,"#      #");
+    wprintw(win_text," #    # ");
+    wprintw(win_text,"  #  #  ");
+    wprintw(win_text," #    # ");
+    wprintw(win_text,"#      #");
+    wprintw(win_text,"########");
+    wrefresh(win_text);
+
     uimod = MODRUN;
     pthread_mutex_unlock(&ncur);
 }
@@ -110,40 +116,37 @@ void timer(int sltext){
         else 
             wprintw(win_text,"%d", i);
         wrefresh(win_text);
-        wrefresh(win_entry);
+        wrefresh(win_entry);  // cursor move
         sleep(SLEEPTIME);
         wclear(win_text);
         i--;   
     }
     wrefresh(win_text);
-    wrefresh(win_entry);    
+    wrefresh(win_entry); // cursor move    
 }
 
 void uiStartBattle(char text[][SWORDMAX]){
     if (uimod != MODRUN)
         return;
     pthread_mutex_lock(&ncur);
-    delwin(win_stat);
+    delwin(win_text);
     clear();
+    curs_set(1);
 
-    box(stdscr, 0, 0);
-
-    win_stat = newwin(SLSTAT, SCMAX, 1, 1);
-
-    mvhline(SLSTAT + 1, 1, 0, SCMAX);
+    mvhline(SLSTAT + 1, 0, 0, SCMAX+2);
 
     win_text = newwin(SLMAX - SLSTAT - SLENTRY - 2, SCMAX, SLSTAT + 2, 1);
     int sltext = textprint(text, 1, 0);
     sltext += 2;
     wresize(win_text, sltext, SCMAX);
 
-    mvhline(SLSTAT + sltext + 2, 1, 0, SCMAX);
+    mvhline(SLSTAT + sltext + 2, 0, 0, SCMAX+2);
 
     win_entry = newwin(SLENTRY, SCMAX, SLSTAT + sltext + 3, 1);
 
     int slprog = SLMAX - SLSTAT - SLENTRY - sltext - 3;
     if (slprog > 0){
-        mvhline(SLSTAT + SLENTRY + sltext + 3, 1, 0, SCMAX);
+        mvhline(SLSTAT + SLENTRY + sltext + 3, 0, 0, SCMAX+2);
         win_prog = newwin(slprog, SCMAX, SLSTAT + SLENTRY + sltext + 4, 1);
     }
 
@@ -162,7 +165,7 @@ void uiTextLowline(char text[][SWORDMAX], int n){
         return;
     pthread_mutex_lock(&ncur);
     textprint(text, 0, n);
-    wrefresh(win_entry);
+    wrefresh(win_entry);  // cursor move
     pthread_mutex_unlock(&ncur);
 }
 
@@ -170,10 +173,15 @@ void uiFinishBattle(){
     if (uimod != MODBATLLE)
         return;
     pthread_mutex_lock(&ncur);
+    curs_set(0);
     delwin(win_text);
     delwin(win_entry);
     delwin(win_prog);
+    clear();
+
+    mvhline(SLSTAT + 1, 0, 0, SCMAX+2);
     win_prog = newwin(SLMAX - SLSTAT - 1, SCMAX, SLSTAT + 2, 1);
+    refresh();
     wrefresh(win_prog);
     uimod = MODFINISH;
     pthread_mutex_unlock(&ncur);
@@ -187,11 +195,11 @@ void uiStatPrint(int speed, int miss, double time, int online){
     if (uimod == MODFINISH)
         precision = 2; 
     wclear(win_stat);
-    wprintw(win_stat, "SPEED %-3d MISS %-3d TIME %-3.*f", speed, miss, precision, time);
+    wprintw(win_stat, "SPEED %-3d  MISS %-3d  TIME %-3.*f", speed, miss, precision, time);
     mvwprintw(win_stat, 0, SCMAX-9, "ONLINE %-d", online);
     wrefresh(win_stat);
     if (uimod == MODBATLLE)
-        wrefresh(win_entry);
+        wrefresh(win_entry); // cursor move
     pthread_mutex_unlock(&ncur);
 }
 
@@ -244,7 +252,7 @@ void uiProgPrint(struct plaerstr **p, int n){
         if (p[i]->name[0] != '\0'){
             mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
             if (p[i]->prog == 100)
-                mvwprintw(win_prog, i, SNAMEMAX, "SPEED %-3d MISS %-3d TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
+                mvwprintw(win_prog, i, SNAMEMAX, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
             else{
                 mvwprintw(win_prog, i, SNAMEMAX, "[");
                 mvwhline(win_prog, i, SNAMEMAX+1, '=', (int)(((float)SCMAX-SNAMEMAX-7)/100*p[i]->prog));
@@ -255,7 +263,19 @@ void uiProgPrint(struct plaerstr **p, int n){
     }
     wrefresh(win_prog);
     if (uimod == MODBATLLE)
-        wrefresh(win_entry);
+        wrefresh(win_entry); // cursor move
+    pthread_mutex_unlock(&ncur);
+}
+
+void uiHelpPrint(char texthelp[]){
+    if (uimod != MODRUN && uimod != MODBATLLE && uimod != MODFINISH)
+        return;
+    pthread_mutex_lock(&ncur);
+    wclear(win_help);
+    wprintw(win_help," %s%*s", texthelp, COLS-strlen(texthelp), "");
+    wrefresh(win_help);
+    if (uimod == MODBATLLE)
+        wrefresh(win_entry); // cursor move
     pthread_mutex_unlock(&ncur);
 }
 
