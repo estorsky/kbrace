@@ -39,6 +39,7 @@ int num_words = 0;
 int progress = 0;
 
 char state = 'x';
+int online = 0;
 
 struct passwd *ppasswd;
 struct stat player_stat;
@@ -83,7 +84,7 @@ double wtime() {
 
 int miss = 0, cpm = 0;
 int sec = 0;
-int reset_stopwatch = 1; // 0 for reset
+int reset_stopwatch = 0; // 1 for reset
 
 pthread_mutex_t for_cond = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -101,24 +102,19 @@ void *stat () {
         pthread_mutex_unlock(&for_cond);
 
         sec = 0;
-        miss = 0;
-        cpm = 0;
 
-        reset_stopwatch = 1;
-        while (reset_stopwatch) {
-            uiStatPrint(cpm, miss, sec);
+        reset_stopwatch = 0;
+        while (!reset_stopwatch) {
+            uiStatPrint(cpm, miss, sec, online);
             sleep(1);
             sec++;
         }
     }
 }
 
-int reset_sender = 1;
+int reset_sender = 0;
 
 void *sender () {
-    // pthread_mutex_lock(&start_sender);
-    // printf("sender start\n");
-
     char zero = '\0';
     int bytes = 0;
 
@@ -126,15 +122,6 @@ void *sender () {
     // printf("id? %db player id = %d\n", bytes, player_id);
 
     while(true) {
-        memset(text, 0, sizeof(text[0][0]) * MAX_WORDS * MAX_WORD_LEN);
-        state = 'v';
-        bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
-        // printf("text? %db %s\n", bytes, text[0]);
-
-        pthread_mutex_lock(&for_cond);
-        pthread_cond_broadcast(&cond);
-        pthread_mutex_unlock(&for_cond);
-
         for (int i = 0; i < MAX_PLAYERS; i++) {
             strncpy(stats[i].name, &zero, MAX_USERNAME);
             stats[i].player_id = 0;
@@ -152,9 +139,18 @@ void *sender () {
             p[i]->state = zero;
         }
 
-        reset_sender = 1;
-        // pthread_mutex_lock(&start_battle);
-        while (reset_sender) {
+        memset(text, 0, sizeof(text[0][0]) * MAX_WORDS * MAX_WORD_LEN);
+        state = 'v';
+
+        bytes = recv(sockfd, &online, sizeof(online), 0);
+        bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+
+        pthread_mutex_lock(&for_cond);
+        pthread_cond_broadcast(&cond);
+        pthread_mutex_unlock(&for_cond);
+
+        reset_sender = 0;
+        while (!reset_sender) {
 
             strncpy(player_stat.name, ppasswd->pw_name, MAX_USERNAME);
             player_stat.player_id = player_id;
@@ -164,10 +160,6 @@ void *sender () {
             player_stat.prog = progress;
             player_stat.state = state;
             bytes = send(sockfd, &player_stat, sizeof(player_stat), 0);
-
-            if (player_stat.state == 'x' || player_stat.state == 'q') {
-                break;
-            }
 
             recv(sockfd, stats, sizeof(stats), 0);
 
@@ -200,7 +192,9 @@ void *sender () {
                 }
             }
             uiProgPrint(p, MAX_PLAYERS);
-            // sleep(1);
+            if (player_stat.state == 'x' || player_stat.state == 'q') {
+                break;
+            }
         }
         if (player_stat.state == 'q') {
             break;
@@ -208,7 +202,7 @@ void *sender () {
     }
 }
 
-struct plaerstr **createstr(int n){
+struct plaerstr **createstr (int n) {
     struct plaerstr **p;
     int i;
     char zero = '\0';
@@ -227,6 +221,8 @@ struct plaerstr **createstr(int n){
 }
 
 void exitprog() {
+    state = 'q';
+    pthread_join(tid[1], NULL);
     uiEnd();
     // pthread_cancel(tid[0]);
     // pthread_cancel(tid[1]);
@@ -235,9 +231,12 @@ void exitprog() {
 }
 
 void hdl (int sig) {
-    state = 'q';
-    pthread_join(tid[1], NULL);
-    exitprog();
+    uiEnd();
+    pthread_cancel(tid[0]);
+    pthread_cancel(tid[1]);
+    sleep(1);
+    close(sockfd);
+    exit(0);
 }
 
 int main(int argc, char *argv[]) {
@@ -289,8 +288,6 @@ int main(int argc, char *argv[]) {
     uiInit();
 
     while (true) {
-        // pthread_mutex_unlock(&start_sender);
-
         uiRun();
 
         pthread_mutex_lock(&for_cond);
@@ -299,9 +296,10 @@ int main(int argc, char *argv[]) {
 
         uiStartBattle(text);
 
-        // pthread_mutex_unlock(&start_stat);
-
+        miss = 0;
+        cpm = 0;
         progress = 0;
+
         int i = 0, j = 0;
 
         num_words = 0;
@@ -317,10 +315,8 @@ int main(int argc, char *argv[]) {
         double cur_t = wtime();
         int cur_len_words = 0;
 
-        // uiProgPrint(p, MAX_PLAYERS);
+        uiProgPrint(p, MAX_PLAYERS);
 
-
-        // pthread_mutex_unlock(&start_battle);
         i = 0;
         while(text[i][0] != '\0') {
             uiTextLowline(text, i);
@@ -332,7 +328,7 @@ int main(int argc, char *argv[]) {
             if (word_count > 1) {
                 cur_t = wtime() - cur_t;
                 cpm = ((cur_len_words)/(cur_t / 60));
-                uiStatPrint(cpm, miss, sec);
+                uiStatPrint(cpm, miss, sec, online);
 
                 cur_t = wtime();
                 cur_len_words = 0;
@@ -359,13 +355,9 @@ int main(int argc, char *argv[]) {
                         j = 0;
                         break;
                     case 27:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     case 18:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     default:
@@ -379,7 +371,7 @@ int main(int argc, char *argv[]) {
                             err++;
                             if (err == 1) {
                                 miss++;
-                                uiStatPrint(cpm, miss, sec);
+                                uiStatPrint(cpm, miss, sec, online);
                             }
                         }
                         break;
@@ -398,39 +390,31 @@ int main(int argc, char *argv[]) {
         race_time = wtime() - race_time;
         cpm = ((num_char) / (race_time / 60));
 
-        reset_stopwatch = 0;
+        reset_stopwatch = 1;
 
-        uiStatPrint(cpm, miss, race_time);
         uiFinishBattle();
-        // uiProgPrint(p, MAX_PLAYERS);
+        uiStatPrint(cpm, miss, race_time, online);
+        uiProgPrint(p, MAX_PLAYERS);
 
-        int exit_lobby = 1;
+        int exit_lobby = 0;
         char ch = '\0';
-        while (exit_lobby) {
+        while (!exit_lobby) {
             ch = getch();
             switch (ch) {
                     case 27:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     case 18:
-                        state = 'q';
-                        pthread_join(tid[1], NULL);
                         exitprog();
                         break;
                     default:
-                        exit_lobby = 0;
+                        exit_lobby = 1;
                         break;
             }
-
         }
-
-        // reset_sender = 0;
-
+        // reset_sender = 1;
         state = 'x';
     }
-
     exitprog();
 }
 

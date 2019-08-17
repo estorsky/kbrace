@@ -66,19 +66,20 @@ void *player (void *arg) {
     int player_id = fd-3;
     struct stat player_stat;
     int usr_session_id = 0;
+    int bytes = 0;
     printf("# player id = %d connected!\n", player_id);
 
     pthread_mutex_lock(&ou);
     online_users++;
     pthread_mutex_unlock(&ou);
 
-    send(fd, &player_id, sizeof(player_id), 0);
+    bytes = send(fd, &player_id, sizeof(player_id), 0);
+    printf("%db send id\n", bytes);
 
-    int exit_session = 1;
-    while (exit_session) {
+    int exit_session = 0;
+    while (!exit_session) {
         pthread_mutex_unlock(&start_play);
         usr_session_id = session_id;
-        int bytes = 0;
 
         pthread_mutex_lock(&nu);
         session_num_users++;
@@ -88,15 +89,18 @@ void *player (void *arg) {
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
+        bytes = send(fd, &online_users, sizeof(online_users), 0);
+        printf("%db send online\n", bytes);
         bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+        printf("%db send text\n", bytes);
         // printf("send text %db\n", bytes);
 
         int num_pack = 0;
-        int exit_race = 1;
-        while (exit_race) {
+        int exit_race = 0;
+        while (!exit_race) {
             // printf("\n");
             bytes = recv(fd, &player_stat, sizeof(player_stat), 0);
-            // printf("bytes %d\n", bytes);
+            printf("get stat %d\n", bytes);
             printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,
@@ -107,6 +111,10 @@ void *player (void *arg) {
                     player_stat.state,
                     num_pack);
 
+            if (bytes <= 0 || num_pack > LIM_PACK) {
+                stats[usr_session_id][player_id].state = 'q';
+            }
+
             strncpy(stats[usr_session_id][player_id].name, player_stat.name, MAX_USERNAME);
             stats[usr_session_id][player_id].player_id = player_stat.player_id;
             stats[usr_session_id][player_id].speed = player_stat.speed;
@@ -115,17 +123,18 @@ void *player (void *arg) {
             stats[usr_session_id][player_id].prog = player_stat.prog;
             stats[usr_session_id][player_id].state = player_stat.state;
 
-            if (bytes == 0 || num_pack > LIM_PACK) {
-                stats[usr_session_id][player_id].state = 'q';
+            if (bytes <= 0 || num_pack > LIM_PACK) {
                 break;
             }
 
-            if (player_stat.state == 'q' || player_stat.state == 'x') {
-                printf("q or x\n");
+            if (stats[usr_session_id][player_id].state == 'q' ||
+                    stats[usr_session_id][player_id].state == 'x') {
+                // printf("q or x\n");
                 break;
             }
 
             bytes = send(fd, stats[usr_session_id], sizeof(player_stat) * MAX_PLAYERS, 0);
+            printf("%db send stats\n", bytes);
                     // printf("send %db\n", bytes);
             num_pack++;
             // sleep(1);
@@ -140,9 +149,9 @@ void *player (void *arg) {
                 player_stat.miss,
                 player_stat.time);
 
-        if (player_stat.state == 'q' || bytes == 0 || num_pack > LIM_PACK) {
+        if (player_stat.state == 'q' || bytes <= 0 || num_pack > LIM_PACK) {
             break;
-            // exit_session = 0;
+            // exit_session = 1;
         }
     }
 
@@ -172,10 +181,8 @@ void *session (void *arg) {
 
         pthread_mutex_lock(&start_play);
         printf("new iteration session\n");
-        // rand new text
 
-        // pthread_mutex_lock(&nu);
-        // pthread_mutex_unlock(&nu);
+        // rand new text
 
         printf("timer start %d sec\n", DELAY_WAIT);
         sleep(DELAY_WAIT);
@@ -190,7 +197,10 @@ void *session (void *arg) {
                 online_users);
 
         session_id++;
+
+        pthread_mutex_lock(&nu);
         session_num_users = 0;
+        pthread_mutex_unlock(&nu);
 
         if (session_id > NUM_STRUCTS) {
             session_id = 0;
