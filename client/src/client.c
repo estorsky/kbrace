@@ -228,6 +228,9 @@ struct plaerstr **createstr (int n) {
 }
 
 void exitprog() {
+    char bye_text[100] = "good bye, ";
+    strncat(bye_text, ppasswd->pw_name, sizeof(bye_text));
+    uiHelpPrint(bye_text);
     state = 'q';
     pthread_join(tid[1], NULL);
     uiEnd();
@@ -305,8 +308,8 @@ int main(int argc, char *argv[]) {
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
-        uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear word");
         uiStartBattle(text);
+        uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear word");
 
         miss = 0;
         cpm = 0;
