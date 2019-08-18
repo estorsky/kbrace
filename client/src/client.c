@@ -355,6 +355,8 @@ int main(int argc, char *argv[]) {
                     case 18:
                         exitprog();
                         break;
+                    case 10:
+                        break;
                     default:
                         if (ch == text[i][j] && err == 0) {
                             uiEntryPrint(ch, 0);
