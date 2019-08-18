@@ -41,6 +41,8 @@ int progress = 0;
 char state = 'x';
 int online = 0;
 
+int local = 0;
+
 struct passwd *ppasswd;
 struct stat player_stat;
 struct plaerstr **p;
@@ -161,7 +163,9 @@ void *sender () {
             player_stat.state = state;
             bytes = send(sockfd, &player_stat, sizeof(player_stat), 0);
 
-            recv(sockfd, stats, sizeof(stats), 0); //comment if testing in local
+            if (!local) { //very bed crutch
+                recv(sockfd, stats, sizeof(stats), 0); //comment if testing in local
+            }
 
             int i = 1;
             for(int n = 0; n < MAX_PLAYERS; n++) {
@@ -195,7 +199,9 @@ void *sender () {
             if (player_stat.state == 'x' || player_stat.state == 'q') {
                 break;
             }
-            // recv(sockfd, stats, sizeof(stats), 0); // uncomment if testing in local
+            if (local) {
+                recv(sockfd, stats, sizeof(stats), 0); // uncomment if testing in local
+            }
         }
         if (player_stat.state == 'q') {
             break;
@@ -263,6 +269,9 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
+    if ( !strcmp(argv[1], "127.0.0.1")) {
+        local = 1;
+    }
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
