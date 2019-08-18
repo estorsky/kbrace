@@ -2,16 +2,12 @@
 #include "../include/ui.h"
 
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <strings.h>
-#include <unistd.h>
-#include <pthread.h>
 #include <netdb.h>
 #include <sys/time.h>
 #include <ncursesw/curses.h>
@@ -21,15 +17,6 @@
 #include <signal.h>
 
 #define h_addr h_addr_list[0] /*  for backward compatibility */
-
-#define true 1
-#define false 0
-
-#define PORT 1337
-#define MAX_PLAYERS 30
-#define MAX_USERNAME 10
-#define MAX_WORD_LEN 20
-#define MAX_WORDS 100
 
 char start[10] = "start";
 
@@ -42,6 +29,7 @@ char state = 'x';
 int online = 0;
 
 int local = 0;
+char username[MAX_USERNAME] = "\0";
 
 struct passwd *ppasswd;
 struct stat player_stat;
@@ -145,6 +133,10 @@ void *sender () {
         state = 'v';
 
         bytes = recv(sockfd, &online, sizeof(online), 0);
+        // if (bytes <= 0) {
+            // exitprog();
+            // printf("server disconnected\n");
+        // }
         bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
 
         pthread_mutex_lock(&for_cond);
@@ -227,19 +219,6 @@ struct plaerstr **createstr (int n) {
     return p;
 }
 
-void exitprog() {
-    char bye_text[100] = "good bye, ";
-    strncat(bye_text, ppasswd->pw_name, sizeof(bye_text));
-    uiHelpPrint(bye_text);
-    state = 'q';
-    pthread_join(tid[1], NULL);
-    uiEnd();
-    // pthread_cancel(tid[0]);
-    // pthread_cancel(tid[1]);
-    close(sockfd);
-    exit(0);
-}
-
 void hdl (int sig) {
     uiEnd();
     pthread_cancel(tid[0]);
@@ -291,6 +270,7 @@ int main(int argc, char *argv[]) {
     }
 
     ppasswd = getpwuid(getuid());  // Check for NULL!
+    strncpy(username, ppasswd->pw_name, MAX_USERNAME);
     // printf("User name: %s\n", ppasswd->pw_name);
 
     p = createstr(MAX_PLAYERS);
@@ -302,7 +282,7 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         uiRun();
-        uiHelpPrint("awaiting text");
+        uiHelpPrint("awaiting text...");
 
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);

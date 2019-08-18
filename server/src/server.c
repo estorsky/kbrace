@@ -74,10 +74,17 @@ void *player (void *arg) {
         pthread_mutex_unlock(&for_cond);
 
         bytes = send(fd, &online_users, sizeof(online_users), 0);
+        if (bytes <= 0) {
+            printf("online not send\n");
+            break;
+        }
         printf("%db send online\n", bytes);
+
         bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+        if (bytes <= 0) {
+            break;
+        }
         printf("%db send text\n", bytes);
-        // printf("send text %db\n", bytes);
 
         int num_pack = 0;
         int exit_race = 0;
