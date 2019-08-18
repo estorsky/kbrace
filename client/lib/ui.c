@@ -7,10 +7,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define SWORDMAX 15 //maximum word size
-#define SNAMEMAX 10 //maximum name size
-#define SLEEPTIME 2
-
 #define MODOFF 0
 #define MODINIT 1
 #define MODRUN 2

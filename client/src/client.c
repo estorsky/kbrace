@@ -28,7 +28,7 @@
 #define PORT 1337
 #define MAX_PLAYERS 30
 #define MAX_USERNAME 10
-#define MAX_WORD_LEN 15
+#define MAX_WORD_LEN 20
 #define MAX_WORDS 100
 
 char start[10] = "start";
@@ -161,7 +161,7 @@ void *sender () {
             player_stat.state = state;
             bytes = send(sockfd, &player_stat, sizeof(player_stat), 0);
 
-            recv(sockfd, stats, sizeof(stats), 0);
+            recv(sockfd, stats, sizeof(stats), 0); //comment if testing in local
 
             int i = 1;
             for(int n = 0; n < MAX_PLAYERS; n++) {
@@ -195,6 +195,7 @@ void *sender () {
             if (player_stat.state == 'x' || player_stat.state == 'q') {
                 break;
             }
+            // recv(sockfd, stats, sizeof(stats), 0); // uncomment if testing in local
         }
         if (player_stat.state == 'q') {
             break;
@@ -289,14 +290,14 @@ int main(int argc, char *argv[]) {
 
     while (true) {
         uiRun();
-        uiHelpPrint("waiting text");
+        uiHelpPrint("awaiting text");
 
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
 
+        uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear word");
         uiStartBattle(text);
-        uiHelpPrint("[ESC/F10] exit");
 
         miss = 0;
         cpm = 0;
@@ -397,7 +398,7 @@ int main(int argc, char *argv[]) {
         uiFinishBattle();
         uiStatPrint(cpm, miss, race_time, online);
         uiProgPrint(p, MAX_PLAYERS);
-        uiHelpPrint("[ESC/F10] exit | another key run new race");
+        uiHelpPrint("[ESC/F10] exit | press any key to start a new race");
 
         int exit_lobby = 0;
         char ch = '\0';

@@ -1,7 +1,4 @@
 #include "../include/core.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 // #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -14,20 +11,7 @@
 #include <signal.h>
 // #include <error.h>
 
-#define true 1
-#define false 0
-
-#define PORT 1337
-#define DELAY_WAIT 15
-#define MAX_PLAYERS 30
-#define MAX_USERNAME 10
-#define MAX_WORD_LEN 15
-#define MAX_WORDS 100
-
-#define LIM_PACK 900
-#define NUM_STRUCTS 100
-
-char text[100][15] = {{"There "},{"are "},{"different "},{"kinds "},
+char text[MAX_WORDS][MAX_WORD_LEN] = {{"There "},{"are "},{"different "},{"kinds "},
     // {"of "},{"animals "},{"on "},{"our "},{"planet, "},{"and "},{"all "},
     // {"of "},{"them "},{"are "},{"very "},{"important "},{"for "},{"it. "},
     // {"For " },{"example, "},{"everybody "},{"knows "},{"that "},{"the "},
@@ -182,7 +166,7 @@ void *session (void *arg) {
         pthread_mutex_lock(&start_play);
         printf("new iteration session\n");
 
-        // rand new text
+        getNewText(text);
 
         printf("timer start %d sec\n", DELAY_WAIT);
         sleep(DELAY_WAIT);
@@ -217,6 +201,7 @@ void hdl (int sig) {
 }
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
 
     struct sigaction sa;
     sa.sa_handler = hdl;
