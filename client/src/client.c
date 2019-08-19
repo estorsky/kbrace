@@ -344,7 +344,8 @@ int main(int argc, char *argv[]) {
                     case 7:
                         if (err > 0) {
                             err--;
-                            uiEntryBack(1); //bag
+                            if (err == 0) uiEntryBack(0);
+                            else uiEntryBack(1);
                         } else {
                             if (j > 0) j--;
                             uiEntryBack(0);
@@ -362,6 +363,10 @@ int main(int argc, char *argv[]) {
                     case 18:
                         exitprog();
                         break;
+                    case 4:
+                    case 2:
+                    case 5:
+                    case 3:
                     case 10:
                         break;
                     default:
