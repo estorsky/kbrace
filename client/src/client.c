@@ -133,7 +133,13 @@ void *sender () {
         state = 'v';
 
         bytes = recv(sockfd, &online, sizeof(online), 0);
+        if (bytes <= 0) {
+            exitprog();
+        }
         bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
+        if (bytes <= 0) {
+            exitprog();
+        }
 
         pthread_mutex_lock(&for_cond);
         pthread_cond_broadcast(&cond);
@@ -189,6 +195,9 @@ void *sender () {
             }
             if (local) {
                 recv(sockfd, stats, sizeof(stats), 0);
+            }
+            if (bytes <= 0) {
+                exitprog();
             }
         }
         if (player_stat.state == 'q') {
