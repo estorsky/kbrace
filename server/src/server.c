@@ -214,6 +214,8 @@ int main(int argc, char *argv[]) {
     sa.sa_handler = hdl;
     sigaction(SIGINT, &sa, NULL);
 
+    signal(SIGPIPE, SIG_IGN);
+
     pthread_t tid[MAX_PLAYERS];
     struct sockaddr_in socket_addr[MAX_PLAYERS];
     int i;

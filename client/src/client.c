@@ -133,10 +133,6 @@ void *sender () {
         state = 'v';
 
         bytes = recv(sockfd, &online, sizeof(online), 0);
-        // if (bytes <= 0) {
-            // exitprog();
-            // printf("server disconnected\n");
-        // }
         bytes = recv(sockfd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
 
         pthread_mutex_lock(&for_cond);
@@ -156,7 +152,7 @@ void *sender () {
             bytes = send(sockfd, &player_stat, sizeof(player_stat), 0);
 
             if (!local) { //very bed crutch
-                recv(sockfd, stats, sizeof(stats), 0); //comment if testing in local
+                bytes = recv(sockfd, stats, sizeof(stats), 0);
             }
 
             int i = 1;
@@ -192,7 +188,7 @@ void *sender () {
                 break;
             }
             if (local) {
-                recv(sockfd, stats, sizeof(stats), 0); // uncomment if testing in local
+                recv(sockfd, stats, sizeof(stats), 0);
             }
         }
         if (player_stat.state == 'q') {
@@ -230,9 +226,11 @@ void hdl (int sig) {
 
 int main(int argc, char *argv[]) {
 
-    struct sigaction sa;
-    sa.sa_handler = hdl;
-    sigaction(SIGINT, &sa, NULL);
+    // struct sigaction sa;
+    // sa.sa_handler = hdl;
+    // sigaction(SIGINT, &sa, NULL);
+
+    signal(SIGPIPE, SIG_IGN);
 
     if (argc < 2){
         fprintf(stderr,"Please type:\n\t %s [server ip]\n to launch the game.\n", argv[0]);
@@ -289,7 +287,7 @@ int main(int argc, char *argv[]) {
         pthread_mutex_unlock(&for_cond);
 
         uiStartBattle(text);
-        uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear word");
+        uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear text line");
 
         miss = 0;
         cpm = 0;

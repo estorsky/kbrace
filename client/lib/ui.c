@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#define SLEEPTIME 2
+
 #define MODOFF 0
 #define MODINIT 1
 #define MODRUN 2
@@ -23,7 +25,7 @@ WINDOW *win_text;
 WINDOW *win_entry;
 WINDOW *win_prog;
 WINDOW *win_help;
-char entrybuffer[SWORDMAX];
+char entrybuffer[MAX_WORD_LEN];
 int uimod = MODOFF;
 
 pthread_mutex_t ncur = PTHREAD_MUTEX_INITIALIZER;
@@ -70,7 +72,7 @@ void uiRun(){
     pthread_mutex_unlock(&ncur);
 }
 
-int textprint(char text[][SWORDMAX], int printoff, int lowline){
+int textprint(char text[][MAX_WORD_LEN], int printoff, int lowline){
     int i = 0, j = 0, sltext = 1, textlim = SCMAX;
     if (printoff == 0)
         wclear(win_text);
@@ -121,7 +123,7 @@ void timer(int sltext){
     wrefresh(win_entry); // cursor move    
 }
 
-void uiStartBattle(char text[][SWORDMAX]){
+void uiStartBattle(char text[][MAX_WORD_LEN]){
     if (uimod != MODRUN)
         return;
     pthread_mutex_lock(&ncur);
@@ -158,7 +160,7 @@ void uiStartBattle(char text[][SWORDMAX]){
     pthread_mutex_unlock(&ncur);
 }
 
-void uiTextLowline(char text[][SWORDMAX], int n){
+void uiTextLowline(char text[][MAX_WORD_LEN], int n){
     if (uimod != MODBATLLE)
         return;
     pthread_mutex_lock(&ncur);
@@ -234,7 +236,7 @@ void uiEntryClear(){
     if (uimod != MODBATLLE)
         return;
     pthread_mutex_lock(&ncur);
-    memset(entrybuffer, 0, SWORDMAX);
+    memset(entrybuffer, 0, MAX_WORD_LEN);
     wclear(win_entry);
     wrefresh(win_entry);
     pthread_mutex_unlock(&ncur);
@@ -250,10 +252,10 @@ void uiProgPrint(struct plaerstr **p, int n){
         if (p[i]->name[0] != '\0'){
             mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
             if (p[i]->prog == 100)
-                mvwprintw(win_prog, i, SNAMEMAX, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
+                mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
             else{
-                mvwprintw(win_prog, i, SNAMEMAX, "[");
-                mvwhline(win_prog, i, SNAMEMAX+1, '=', (int)(((float)SCMAX-SNAMEMAX-7)/100*p[i]->prog));
+                mvwprintw(win_prog, i, MAX_USERNAME, "[");
+                mvwhline(win_prog, i, MAX_USERNAME+1, '=', (int)(((float)SCMAX-MAX_USERNAME-7)/100*p[i]->prog));
                 mvwprintw(win_prog, i, SCMAX-5, "]");
             }
             mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);

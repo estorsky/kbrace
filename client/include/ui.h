@@ -1,9 +1,7 @@
 #ifndef UI_H
 #define UI_H
 
-#define SWORDMAX 20 //maximum word size
-#define SNAMEMAX 10 //maximum name size
-#define SLEEPTIME 2
+#include "../include/core.h"
 
 struct plaerstr{
     char name[10];
@@ -16,8 +14,8 @@ struct plaerstr{
 
 void uiInit();
 void uiRun();
-void uiStartBattle(char [][SWORDMAX]);
-void uiTextLowline(char [][SWORDMAX], int);
+void uiStartBattle(char [][MAX_WORD_LEN]);
+void uiTextLowline(char [][MAX_WORD_LEN], int);
 void uiFinishBattle();
 void uiStatPrint(int, int, double, int);
 void uiEntryPrint(char, int);
