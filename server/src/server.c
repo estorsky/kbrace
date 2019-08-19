@@ -51,14 +51,14 @@ void *player (void *arg) {
     struct stat player_stat;
     int usr_session_id = 0;
     int bytes = 0;
-    printf("# player id = %d connected!\n", player_id);
+    printf("# player id %d connected\n", player_id);
 
     pthread_mutex_lock(&ou);
     online_users++;
     pthread_mutex_unlock(&ou);
 
     bytes = send(fd, &player_id, sizeof(player_id), 0);
-    printf("%db send id\n", bytes);
+    // printf("%db send id\n", bytes);
 
     int exit_session = 0;
     while (!exit_session) {
@@ -75,24 +75,24 @@ void *player (void *arg) {
 
         bytes = send(fd, &online_users, sizeof(online_users), 0);
         if (bytes <= 0) {
-            printf("online not send\n");
+            // printf("online not send\n");
             break;
         }
-        printf("%db send online\n", bytes);
+        // printf("%db send online\n", bytes);
 
         bytes = send(fd, text, sizeof(char) * MAX_WORDS * MAX_WORD_LEN, 0);
         if (bytes <= 0) {
             break;
         }
-        printf("%db send text\n", bytes);
+        // printf("%db send text\n", bytes);
 
         int num_pack = 0;
         int exit_race = 0;
         while (!exit_race) {
             // printf("\n");
             bytes = recv(fd, &player_stat, sizeof(player_stat), 0);
-            printf("get stat %d\n", bytes);
-            printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
+            // printf("get stat %d\n", bytes);
+            /* printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,
                     player_stat.player_id,
@@ -100,11 +100,7 @@ void *player (void *arg) {
                     player_stat.miss,
                     player_stat.time,
                     player_stat.state,
-                    num_pack);
-
-            if (bytes <= 0 || num_pack > LIM_PACK) {
-                stats[usr_session_id][player_id].state = 'q';
-            }
+                    num_pack); */
 
             strncpy(stats[usr_session_id][player_id].name, player_stat.name, MAX_USERNAME);
             stats[usr_session_id][player_id].player_id = player_stat.player_id;
@@ -115,17 +111,17 @@ void *player (void *arg) {
             stats[usr_session_id][player_id].state = player_stat.state;
 
             if (bytes <= 0 || num_pack > LIM_PACK) {
+                stats[usr_session_id][player_id].state = 'q';
                 break;
             }
 
             if (stats[usr_session_id][player_id].state == 'q' ||
                     stats[usr_session_id][player_id].state == 'x') {
-                // printf("q or x\n");
                 break;
             }
 
             bytes = send(fd, stats[usr_session_id], sizeof(player_stat) * MAX_PLAYERS, 0);
-            printf("%db send stats\n", bytes);
+            // printf("%db send stats\n", bytes);
                     // printf("send %db\n", bytes);
             num_pack++;
             // sleep(1);
@@ -140,7 +136,10 @@ void *player (void *arg) {
                 player_stat.miss,
                 player_stat.time);
 
-        if (player_stat.state == 'q' || bytes <= 0 || num_pack > LIM_PACK) {
+        if (stats[usr_session_id][player_id].state == 'q' ||
+                bytes <= 0 || num_pack > LIM_PACK) {
+            printf("player %s id %d disconnected\n",
+                    player_stat.name, player_stat.player_id);
             break;
             // exit_session = 1;
         }
@@ -173,10 +172,10 @@ void *session (void *arg) {
         pthread_mutex_lock(&start_play);
         printf("new iteration session\n");
 
-        getNewText(text);
-
         printf("timer start %d sec\n", DELAY_WAIT);
-        sleep(DELAY_WAIT);
+        sleep(DELAY_WAIT/2);
+        getNewText(text);
+        sleep(DELAY_WAIT/2);
 
         pthread_mutex_lock(&for_cond);
         pthread_cond_broadcast(&cond);
