@@ -1,12 +1,5 @@
 #include "../include/ui.h"
 
-// #include <ncurses.h>
-#include <ncursesw/curses.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-
 #define SLEEPTIME 2
 
 #define MODOFF 0
@@ -111,23 +104,23 @@ void timer(int sltext){
     while(i > 0){
         if (sltext >= 5)
             wprintw(win_text,"%s", number[i-1]);
-        else 
+        else
             wprintw(win_text,"%d", i);
         wrefresh(win_text);
         wrefresh(win_entry);  // cursor move
         sleep(SLEEPTIME);
         wclear(win_text);
-        i--;   
+        i--;
     }
     wrefresh(win_text);
-    wrefresh(win_entry); // cursor move    
+    wrefresh(win_entry); // cursor move
 }
 
 void uiStartBattle(char text[][MAX_WORD_LEN]){
     if (uimod != MODRUN)
         return;
     pthread_mutex_lock(&ncur);
-    
+
     wclear(win_text); // clear and del hourglass
     wrefresh(win_text);
     delwin(win_text);
@@ -153,9 +146,9 @@ void uiStartBattle(char text[][MAX_WORD_LEN]){
 
     refresh();
     wrefresh(win_entry);
-    
+
     timer(sltext);
-    
+
     uimod = MODBATLLE;
     pthread_mutex_unlock(&ncur);
 }
@@ -193,7 +186,7 @@ void uiStatPrint(int speed, int miss, double time, int online){
     pthread_mutex_lock(&ncur);
     int precision = 0;
     if (uimod == MODFINISH)
-        precision = 2; 
+        precision = 2;
     wclear(win_stat);
     wprintw(win_stat, "SPEED %-3d  MISS %-3d  TIME %-3.*f", speed, miss, precision, time);
     mvwprintw(win_stat, 0, SCMAX-9, "ONLINE %-d", online);

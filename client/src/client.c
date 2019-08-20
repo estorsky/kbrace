@@ -1,24 +1,7 @@
 #include "../include/core.h"
 #include "../include/ui.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <strings.h>
-#include <netdb.h>
-#include <sys/time.h>
-#include <ncursesw/curses.h>
-// #include <ncurses.h>
-#include <sys/ioctl.h>
-#include <pwd.h>
-#include <signal.h>
-
 #define h_addr h_addr_list[0] /*  for backward compatibility */
-
-char start[10] = "start";
 
 double race_time = 0;
 int player_id = 0;
@@ -54,23 +37,7 @@ pthread_t tid[2];
 
 char text [MAX_WORDS][MAX_WORD_LEN] = {{"404"}};
 
-struct stat {
-    int player_id;
-    char name[MAX_USERNAME];
-    int speed;
-    int miss;
-    double time;
-    int prog;
-    char state;
-};
-
 struct stat stats[MAX_PLAYERS];
-
-double wtime() {
-    struct timeval t;
-    gettimeofday(&t, NULL);
-    return (double)t.tv_sec + (double)t.tv_usec * 1E-6;
-}
 
 int miss = 0, cpm = 0;
 int sec = 0;
@@ -85,8 +52,6 @@ pthread_mutex_t start_battle = PTHREAD_MUTEX_INITIALIZER;
 
 void *stat () {
     while(true) {
-        // pthread_mutex_lock(&start_stat);
-
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
@@ -172,7 +137,6 @@ void *sender () {
                         p[0]->speed = stats[n].speed;
                         p[0]->miss = stats[n].miss;
                         p[0]->time = stats[n].time;
-                        // continue;
                     }
                 } else {
                     if (strcmp(stats[n].name, "")) {
@@ -194,7 +158,7 @@ void *sender () {
                 break;
             }
             if (local) {
-                recv(sockfd, stats, sizeof(stats), 0);
+                bytes = recv(sockfd, stats, sizeof(stats), 0);
             }
             if (bytes <= 0) {
                 exitprog();
@@ -276,7 +240,10 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    ppasswd = getpwuid(getuid());  // Check for NULL!
+    ppasswd = getpwuid(getuid());
+    if (ppasswd == NULL) {
+        printf("ERROR no such username\n");
+    }
     strncpy(username, ppasswd->pw_name, MAX_USERNAME);
     // printf("User name: %s\n", ppasswd->pw_name);
 
@@ -358,8 +325,6 @@ int main(int argc, char *argv[]) {
                         j = 0;
                         break;
                     case 27:
-                        exitprog();
-                        break;
                     case 18:
                         exitprog();
                         break;
@@ -404,7 +369,9 @@ int main(int argc, char *argv[]) {
         uiFinishBattle();
         uiStatPrint(cpm, miss, race_time, online);
         uiProgPrint(p, MAX_PLAYERS);
-        uiHelpPrint("[ESC/F10] exit | press any key to start a new race");
+        uiHelpPrint("[ESC/F10] exit | press enter to start a new race");
+
+        sleep(3);
 
         int exit_lobby = 0;
         char ch = '\0';
@@ -417,8 +384,10 @@ int main(int argc, char *argv[]) {
                     case 18:
                         exitprog();
                         break;
-                    default:
+                    case 10:
                         exit_lobby = 1;
+                        break;
+                    default:
                         break;
             }
         }

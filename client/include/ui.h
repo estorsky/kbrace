@@ -4,7 +4,7 @@
 #include "../include/core.h"
 
 struct plaerstr{
-    char name[10];
+    char name[MAX_USERNAME];
     int prog;
     int speed;
     int miss;
