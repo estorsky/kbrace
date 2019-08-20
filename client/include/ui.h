@@ -22,6 +22,7 @@ void uiEntryPrint(char, int);
 void uiEntryBack(int);
 void uiEntryClear();
 void uiProgPrint(struct plaerstr **, int n);
+void uiProgPrint2(struct stat stats[], int num, int id);
 void uiHelpPrint(char []);
 void uiEnd();
 

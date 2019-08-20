@@ -50,7 +50,7 @@ pthread_mutex_t start_sender = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t start_stat = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t start_battle = PTHREAD_MUTEX_INITIALIZER;
 
-void *stat () {
+void *stopwatch () {
     while(true) {
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);
@@ -86,12 +86,12 @@ void *sender () {
             stats[i].prog = 0;
             stats[i].state = zero;
 
-            strncpy(p[i]->name, &zero, MAX_USERNAME);
+            /* strncpy(p[i]->name, &zero, MAX_USERNAME);
             p[i]->prog = 0;
             p[i]->speed = 0;
             p[i]->miss = 0;
             p[i]->time = 0;
-            p[i]->state = zero;
+            p[i]->state = zero; */
         }
 
         memset(text, 0, sizeof(text[0][0]) * MAX_WORDS * MAX_WORD_LEN);
@@ -113,7 +113,7 @@ void *sender () {
         reset_sender = 0;
         while (!reset_sender) {
 
-            strncpy(player_stat.name, ppasswd->pw_name, MAX_USERNAME);
+            strncpy(player_stat.name, username, MAX_USERNAME);
             player_stat.player_id = player_id;
             player_stat.speed = cpm;
             player_stat.miss = miss;
@@ -126,7 +126,7 @@ void *sender () {
                 bytes = recv(sockfd, stats, sizeof(stats), 0);
             }
 
-            int i = 1;
+            /* int i = 1;
             for(int n = 0; n < MAX_PLAYERS; n++) {
                 if ( n == player_id ) {
                     strncpy(p[0]->name, stats[n].name, MAX_USERNAME);
@@ -152,8 +152,8 @@ void *sender () {
                         i++;
                     }
                 }
-            }
-            uiProgPrint(p, MAX_PLAYERS);
+            } */
+            uiProgPrint2(stats, MAX_PLAYERS, player_id);
             if (player_stat.state == 'x' || player_stat.state == 'q') {
                 break;
             }
@@ -168,33 +168,6 @@ void *sender () {
             break;
         }
     }
-}
-
-struct plaerstr **createstr (int n) {
-    struct plaerstr **p;
-    int i;
-    char zero = '\0';
-
-    p = malloc(n * sizeof(struct plaerstr *));
-    for(i = 0; i < n; i++){
-        p[i] = malloc(sizeof(struct plaerstr));
-        strncpy(p[i]->name, &zero, MAX_USERNAME);
-        p[i]->prog = 0;
-        p[i]->speed = 0;
-        p[i]->miss = 0;
-        p[i]->time = 0;
-        p[i]->state = zero;
-    }
-    return p;
-}
-
-void hdl (int sig) {
-    uiEnd();
-    pthread_cancel(tid[0]);
-    pthread_cancel(tid[1]);
-    sleep(1);
-    close(sockfd);
-    exit(0);
 }
 
 int main(int argc, char *argv[]) {
@@ -247,9 +220,9 @@ int main(int argc, char *argv[]) {
     strncpy(username, ppasswd->pw_name, MAX_USERNAME);
     // printf("User name: %s\n", ppasswd->pw_name);
 
-    p = createstr(MAX_PLAYERS);
+    // p = createstr(MAX_PLAYERS);
 
-    pthread_create(&tid[0], NULL, stat, NULL);
+    pthread_create(&tid[0], NULL, stopwatch, NULL);
     pthread_create(&tid[1], NULL, sender, NULL);
 
     uiInit();
@@ -284,7 +257,7 @@ int main(int argc, char *argv[]) {
         double cur_t = wtime();
         int cur_len_words = 0;
 
-        uiProgPrint(p, MAX_PLAYERS);
+        uiProgPrint2(stats, MAX_PLAYERS, player_id);
 
         i = 0;
         while(text[i][0] != '\0') {
@@ -368,8 +341,8 @@ int main(int argc, char *argv[]) {
 
         uiFinishBattle();
         uiStatPrint(cpm, miss, race_time, online);
-        uiProgPrint(p, MAX_PLAYERS);
-        uiHelpPrint("[ESC/F10] exit | press enter to start a new race");
+        uiProgPrint2(stats, MAX_PLAYERS, player_id);
+        uiHelpPrint("[ESC/F10] exit | [ENTER] new race");
 
         sleep(3);
 

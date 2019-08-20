@@ -1,17 +1,6 @@
 #include "../include/core.h"
-// #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <strings.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
-// #include <error.h>
 
-char text[MAX_WORDS][MAX_WORD_LEN] = {{"There "},{"are "},{"different "},{"kinds "},
+// char text[MAX_WORDS][MAX_WORD_LEN] = {{"There "},{"are "},{"different "},{"kinds "},
     // {"of "},{"animals "},{"on "},{"our "},{"planet, "},{"and "},{"all "},
     // {"of "},{"them "},{"are "},{"very "},{"important "},{"for "},{"it. "},
     // {"For " },{"example, "},{"everybody "},{"knows "},{"that "},{"the "},
@@ -19,7 +8,9 @@ char text[MAX_WORDS][MAX_WORD_LEN] = {{"There "},{"are "},{"different "},{"kinds
     // {"they "},{"are "},{"useful "},{"for "},{"cleaning "},{"seawater. "},
     // {"There "},{"are "},{"two "},{"types "},{"of "},{"animals: "},
     // {"domestic "},{"and "},{"wild. "},{"People "},{"keep "},{"pets "},{"in "},
-    {"their "},{"homes."},{'\0'}};
+    // {"their "},{"homes."},{'\0'}};
+
+char text[MAX_WORDS][MAX_WORD_LEN] = {{"404"}};
 
 int session_num_users = 0;
 int session_id = 0;
@@ -31,17 +22,6 @@ pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t start_play = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t nu = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ou = PTHREAD_MUTEX_INITIALIZER;
-
-struct stat {
-    int player_id;
-    char name[MAX_USERNAME];
-    int speed;
-    int miss;
-    double time;
-    int prog;
-    char state;
-};
-
 
 struct stat stats[NUM_STRUCTS][MAX_PLAYERS];
 
@@ -160,7 +140,8 @@ void *session (void *arg) {
 
     while (true) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
+            // strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
+            stats[session_id][i].name[0] = '\0';
             stats[session_id][i].player_id = 0;
             stats[session_id][i].speed = 0;
             stats[session_id][i].miss = 0;

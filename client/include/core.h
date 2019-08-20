@@ -1,6 +1,8 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "../../shared/include/consts.h"
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -20,27 +22,10 @@
 #include <pwd.h>
 #include <signal.h>
 
-#define true 1
-#define false 0
-
-#define PORT 1337
-#define MAX_PLAYERS 30
-#define MAX_USERNAME 10
-#define MAX_WORD_LEN 20
-#define MAX_WORDS 100
-
-struct stat {
-    int player_id;
-    char name[MAX_USERNAME];
-    int speed;
-    int miss;
-    double time;
-    int prog;
-    char state;
-};
-
 void exitprog();
 double wtime();
+struct plaerstr **createstr (int);
+void hdl (int);
 
 extern char username[MAX_USERNAME];
 extern char state;

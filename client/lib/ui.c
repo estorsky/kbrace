@@ -260,6 +260,48 @@ void uiProgPrint(struct plaerstr **p, int n){
     pthread_mutex_unlock(&ncur);
 }
 
+void uiProgPrint2(struct stat stats[], int num, int id){
+    if (uimod != MODBATLLE && uimod != MODFINISH)
+        return;
+    pthread_mutex_lock(&ncur);
+    wclear(win_prog);
+    int i = 1;
+    for (int n = 0; n < num; n++){
+        if ( n == id ) {
+            mvwprintw(win_prog, 0, 0, "%s ", stats[n].name);
+            if (stats[n].prog == 100)
+                mvwprintw(win_prog, 0, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f",
+                        stats[n].speed, stats[n].miss, stats[n].time);
+            else{
+                mvwprintw(win_prog, 0, MAX_USERNAME, "[");
+                mvwhline(win_prog, 0, MAX_USERNAME+1, '=',
+                        (int)(((float)SCMAX-MAX_USERNAME-7)/100*stats[n].prog));
+                mvwprintw(win_prog, 0, SCMAX-5, "]");
+            }
+            mvwprintw(win_prog, 0, SCMAX-2, "%c", stats[n].state);
+        } else {
+            if (strcmp(stats[n].name, "")) {
+                mvwprintw(win_prog, i, 0, "%s ", stats[n].name);
+                if (stats[n].prog == 100)
+                    mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f",
+                            stats[n].speed, stats[n].miss, stats[n].time);
+                else{
+                    mvwprintw(win_prog, i, MAX_USERNAME, "[");
+                    mvwhline(win_prog, i, MAX_USERNAME+1, '=',
+                            (int)(((float)SCMAX-MAX_USERNAME-7)/100*stats[n].prog));
+                    mvwprintw(win_prog, i, SCMAX-5, "]");
+                }
+                mvwprintw(win_prog, i, SCMAX-2, "%c", stats[n].state);
+                i++;
+            }
+        }
+    }
+    wrefresh(win_prog);
+    if (uimod == MODBATLLE)
+        wrefresh(win_entry); // cursor move
+    pthread_mutex_unlock(&ncur);
+}
+
 void uiHelpPrint(char texthelp[]){
     if (uimod != MODRUN && uimod != MODBATLLE && uimod != MODFINISH)
         return;

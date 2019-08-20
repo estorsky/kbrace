@@ -1,20 +1,23 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include "../../shared/include/consts.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <strings.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <signal.h>
+// #include <error.h>
 
-#define true 1
-#define false 0
-
-#define PORT 1337
-#define DELAY_WAIT 15
-#define MAX_PLAYERS 30
-#define MAX_USERNAME 10
-#define MAX_WORD_LEN 20
-#define MAX_WORDS 100
-
+#define DELAY_WAIT 20
 #define LIM_PACK 900
 #define NUM_STRUCTS 100
 
