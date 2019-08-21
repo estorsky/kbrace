@@ -97,13 +97,18 @@ int textprint(char text[][MAX_WORD_LEN], int printoff, int lowline){
 }
 
 void timer(int sltext){
-    char number[3][45] = {"      ##\n    ####\n      ##\n      ##\n      ##",
-                          "  ####  \n##    ##\n    ##  \n  ##    \n########",
-                          "######  \n      ##\n  ####  \n      ##\n######  "};
-    int i = 3;
-    while(i > 0){
-        if (sltext >= 5)
-            wprintw(win_text,"%s", number[i-1]);
+    char number[3][5][9] = {{"      ##","    ####","      ##","      ##","      ##",},
+                            {"  ####  ","##    ##","    ##  ","  ##    ","########",},
+                            {"######  ","      ##","  ####  ","      ##","######  "}};
+    int i = 3, j;
+    while (i > 0){
+        if (sltext >= 5){
+            while (j < 5){
+                wprintw(win_text,"%*s\n", COLS/2+4, number[i-1][j]);
+                j++;
+            }
+            j = 0;
+        }
         else
             wprintw(win_text,"%d", i);
         wrefresh(win_text);
@@ -243,7 +248,7 @@ void uiProgPrint(struct plaerstr **p, int n){
     int i;
     for (i = 0; i < n; i++){
         if (p[i]->name[0] != '\0'){
-            mvwprintw(win_prog, i, 0, "%s ", p[i]->name);
+            mvwprintw(win_prog, i, 0, "%s", p[i]->name);
             if (p[i]->prog == 100)
                 mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
             else{
@@ -265,36 +270,26 @@ void uiProgPrint2(struct stat stats[], int num, int id){
         return;
     pthread_mutex_lock(&ncur);
     wclear(win_prog);
-    int i = 1;
-    for (int n = 0; n < num; n++){
-        if ( n == id ) {
-            mvwprintw(win_prog, 0, 0, "%s ", stats[n].name);
-            if (stats[n].prog == 100)
-                mvwprintw(win_prog, 0, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f",
-                        stats[n].speed, stats[n].miss, stats[n].time);
+    int i_real = 0, i_normal = 0, lineprint = 1;
+    while (i_real < num){
+        if (stats[i_real].name[0] != '\0'){
+            if (i_real == id)
+                lineprint = 0;
+            mvwprintw(win_prog, lineprint, 0, "%s", stats[i_real].name);
+            if (stats[i_real].prog == 100)
+                mvwprintw(win_prog, lineprint, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f", stats[i_real].speed, stats[i_real].miss, stats[i_real].time);
             else{
-                mvwprintw(win_prog, 0, MAX_USERNAME, "[");
-                mvwhline(win_prog, 0, MAX_USERNAME+1, '=',
-                        (int)(((float)SCMAX-MAX_USERNAME-7)/100*stats[n].prog));
-                mvwprintw(win_prog, 0, SCMAX-5, "]");
+                mvwprintw(win_prog, lineprint, MAX_USERNAME, "[");
+                mvwhline(win_prog, lineprint, MAX_USERNAME+1, '=', (int)(((float)SCMAX-MAX_USERNAME-7)/100*stats[i_real].prog));
+                mvwprintw(win_prog, lineprint, SCMAX-5, "]");
             }
-            mvwprintw(win_prog, 0, SCMAX-2, "%c", stats[n].state);
-        } else {
-            if (strcmp(stats[n].name, "")) {
-                mvwprintw(win_prog, i, 0, "%s ", stats[n].name);
-                if (stats[n].prog == 100)
-                    mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f",
-                            stats[n].speed, stats[n].miss, stats[n].time);
-                else{
-                    mvwprintw(win_prog, i, MAX_USERNAME, "[");
-                    mvwhline(win_prog, i, MAX_USERNAME+1, '=',
-                            (int)(((float)SCMAX-MAX_USERNAME-7)/100*stats[n].prog));
-                    mvwprintw(win_prog, i, SCMAX-5, "]");
-                }
-                mvwprintw(win_prog, i, SCMAX-2, "%c", stats[n].state);
-                i++;
-            }
+            mvwprintw(win_prog, lineprint, SCMAX-2, "%c", stats[i_real].state);
+            if (i_real == id)
+                lineprint = i_normal;
+            i_normal++;
+            lineprint++;
         }
+        i_real++;
     }
     wrefresh(win_prog);
     if (uimod == MODBATLLE)
