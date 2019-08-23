@@ -75,7 +75,7 @@ void *player (void *arg) {
             /* printf("## session #%d player %s: id %3d, speed %3d, miss %3d, time %4.2f %c [%d]\n",
                     usr_session_id,
                     player_stat.name,
-                    player_stat.player_id,
+                    player_stat.id,
                     player_stat.speed,
                     player_stat.miss,
                     player_stat.time,
@@ -83,7 +83,7 @@ void *player (void *arg) {
                     num_pack); */
 
             strncpy(stats[usr_session_id][player_id].name, player_stat.name, MAX_USERNAME);
-            stats[usr_session_id][player_id].player_id = player_stat.player_id;
+            stats[usr_session_id][player_id].id = player_stat.id;
             stats[usr_session_id][player_id].speed = player_stat.speed;
             stats[usr_session_id][player_id].miss = player_stat.miss;
             stats[usr_session_id][player_id].time = player_stat.time;
@@ -111,7 +111,7 @@ void *player (void *arg) {
         printf("## session #%d player %s end race: id %3d, speed %3d, miss %3d, time %.2f\n",
                 usr_session_id,
                 player_stat.name,
-                player_stat.player_id,
+                player_stat.id,
                 player_stat.speed,
                 player_stat.miss,
                 player_stat.time);
@@ -119,7 +119,7 @@ void *player (void *arg) {
         if (stats[usr_session_id][player_id].state == 'q' ||
                 bytes <= 0 || num_pack > LIM_PACK) {
             printf("player %s id %d disconnected\n",
-                    player_stat.name, player_stat.player_id);
+                    player_stat.name, player_stat.id);
             break;
             // exit_session = 1;
         }
@@ -142,7 +142,7 @@ void *session (void *arg) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             // strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
             stats[session_id][i].name[0] = '\0';
-            stats[session_id][i].player_id = 0;
+            stats[session_id][i].id = 0;
             stats[session_id][i].speed = 0;
             stats[session_id][i].miss = 0;
             stats[session_id][i].time = 0;

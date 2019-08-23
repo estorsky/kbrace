@@ -11,7 +11,7 @@
 #define MAX_WORDS 100
 
 struct stat {
-    int player_id;
+    int id;
     char name[MAX_USERNAME];
     int speed;
     int miss;

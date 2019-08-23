@@ -3,12 +3,17 @@
 
 #define h_addr h_addr_list[0] /*  for backward compatibility */
 
-double race_time = 0;
 int player_id = 0;
 int num_words = 0;
 int progress = 0;
 
-char state = 'x';
+double race_time = 0;
+int num_char = 0;
+int miss = 0, cpm = 0;
+int sec = 0;
+int reset_stopwatch = 0; // 1 for reset
+
+char state = '\0';
 int online = 0;
 
 int local = 0;
@@ -39,22 +44,21 @@ char text [MAX_WORDS][MAX_WORD_LEN] = {{"404"}};
 
 struct stat stats[MAX_PLAYERS];
 
-int miss = 0, cpm = 0;
-int sec = 0;
-int reset_stopwatch = 0; // 1 for reset
-
 pthread_mutex_t for_cond = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
-pthread_mutex_t start_sender = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t start_stat = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t start_battle = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t sndr = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t sw = PTHREAD_MUTEX_INITIALIZER;
+// pthread_mutex_t start_battle = PTHREAD_MUTEX_INITIALIZER;
 
 void *stopwatch () {
     while(true) {
         pthread_mutex_lock(&for_cond);
         pthread_cond_wait(&cond, &for_cond);
         pthread_mutex_unlock(&for_cond);
+
+        pthread_mutex_lock(&sw);
+        pthread_mutex_unlock(&sw);
 
         sec = 0;
 
@@ -77,14 +81,22 @@ void *sender () {
     // printf("id? %db player id = %d\n", bytes, player_id);
 
     while(true) {
+        strncpy(player_stat.name, &zero, MAX_USERNAME);
+        player_stat.id = 0;
+        player_stat.speed = 0;
+        player_stat.miss = 0;
+        player_stat.time = 0;
+        player_stat.prog = 0;
+        player_stat.state = '\0';
+
         for (int i = 0; i < MAX_PLAYERS; i++) {
             strncpy(stats[i].name, &zero, MAX_USERNAME);
-            stats[i].player_id = 0;
+            stats[i].id = 0;
             stats[i].speed = 0;
             stats[i].miss = 0;
             stats[i].time = 0;
             stats[i].prog = 0;
-            stats[i].state = zero;
+            stats[i].state = '\0';
 
             /* strncpy(p[i]->name, &zero, MAX_USERNAME);
             p[i]->prog = 0;
@@ -110,11 +122,14 @@ void *sender () {
         pthread_cond_broadcast(&cond);
         pthread_mutex_unlock(&for_cond);
 
+        // pthread_mutex_lock(&sndr);
+        // pthread_mutex_unlock(&sndr);
+
         reset_sender = 0;
         while (!reset_sender) {
 
             strncpy(player_stat.name, username, MAX_USERNAME);
-            player_stat.player_id = player_id;
+            player_stat.id = player_id;
             player_stat.speed = cpm;
             player_stat.miss = miss;
             player_stat.time = race_time;
@@ -228,6 +243,15 @@ int main(int argc, char *argv[]) {
     uiInit();
 
     while (true) {
+        num_char = 0;
+        miss = 0;
+        cpm = 0;
+        progress = 0;
+        race_time = 0;
+
+        pthread_mutex_lock(&sw);
+        // pthread_mutex_lock(&sndr);
+
         uiRun();
         uiHelpPrint("awaiting text...");
 
@@ -238,10 +262,6 @@ int main(int argc, char *argv[]) {
         uiStartBattle(text);
         uiHelpPrint("[ESC/F10] exit | [CTRL+U] clear text line");
 
-        miss = 0;
-        cpm = 0;
-        progress = 0;
-
         int i = 0, j = 0;
 
         num_words = 0;
@@ -251,13 +271,14 @@ int main(int argc, char *argv[]) {
         }
 
         race_time = wtime();
-        int num_char = 0;
 
         int word_count = 0;
         double cur_t = wtime();
         int cur_len_words = 0;
 
         uiProgPrint2(stats, MAX_PLAYERS, player_id);
+        pthread_mutex_unlock(&sw);
+        // pthread_mutex_unlock(&sndr);
 
         i = 0;
         while(text[i][0] != '\0') {
