@@ -50,7 +50,7 @@ void uiRun(){
         clear();
         refresh();
     }
-    curs_set(0);
+    curs_set(0); // off cursor (0 = invisible mod)
     win_text = newwin(7, 8, LINES/2-4, COLS/2-4);
     wprintw(win_text,"########");
     wprintw(win_text,"#      #");
@@ -102,14 +102,14 @@ void timer(int sltext){
                             {"######  ","      ##","  ####  ","      ##","######  "}};
     int i = 3, j;
     while (i > 0){
-        if (sltext >= 5){
+        if (sltext >= 5){ // free size for big number
+            j = 0;
             while (j < 5){
                 wprintw(win_text,"%*s\n", COLS/2+4, number[i-1][j]);
                 j++;
             }
-            j = 0;
         }
-        else
+        else // small number 
             wprintw(win_text,"%d", i);
         wrefresh(win_text);
         wrefresh(win_entry);  // cursor move
@@ -136,7 +136,7 @@ void uiStartBattle(char text[][MAX_WORD_LEN]){
 
     win_text = newwin(SLMAX - SLSTAT - SLENTRY - 2, SCMAX, SLSTAT + 2, 1);
     int sltext = textprint(text, 1, 0);
-    sltext += 2;
+    sltext += 2; // free lines after text
     wresize(win_text, sltext, SCMAX);
 
     mvhline(SLSTAT + sltext + 2, 0, 0, SCMAX+2);
@@ -171,7 +171,7 @@ void uiFinishBattle(){
     if (uimod != MODBATLLE)
         return;
     pthread_mutex_lock(&ncur);
-    curs_set(0);
+    curs_set(0); // off cursor (0 = invisible mod)
     delwin(win_text);
     delwin(win_entry);
     delwin(win_prog);
@@ -302,7 +302,7 @@ void uiHelpPrint(char texthelp[]){
         return;
     pthread_mutex_lock(&ncur);
     wclear(win_help);
-    wprintw(win_help," %s%*s", texthelp, COLS-strlen(texthelp), "");
+    wprintw(win_help," %-*s", COLS-1, texthelp);
     wrefresh(win_help);
     if (uimod == MODBATLLE)
         wrefresh(win_entry); // cursor move
