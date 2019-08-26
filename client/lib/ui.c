@@ -109,7 +109,7 @@ void timer(int sltext){
                 j++;
             }
         }
-        else // small number 
+        else // small number
             wprintw(win_text,"%d", i);
         wrefresh(win_text);
         wrefresh(win_entry);  // cursor move

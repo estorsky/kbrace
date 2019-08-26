@@ -127,13 +127,14 @@ void *sender () {
 
         reset_sender = 0;
         while (!reset_sender) {
-
-            strncpy(player_stat.name, username, MAX_USERNAME);
-            player_stat.id = player_id;
-            player_stat.speed = cpm;
-            player_stat.miss = miss;
-            player_stat.time = race_time;
-            player_stat.prog = progress;
+            if (state != 'x') {
+                strncpy(player_stat.name, username, MAX_USERNAME);
+                player_stat.id = player_id;
+                player_stat.speed = cpm;
+                player_stat.miss = miss;
+                player_stat.time = race_time;
+                player_stat.prog = progress;
+            }
             player_stat.state = state;
             bytes = send(sockfd, &player_stat, sizeof(player_stat), 0);
 
