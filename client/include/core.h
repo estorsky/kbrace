@@ -22,6 +22,16 @@
 #include <pwd.h>
 #include <signal.h>
 
+#define ARROW_D 2
+#define ARROW_U 3
+#define ARROW_L 4
+#define ARROW_R 5
+#define BACKSPACE 7
+#define ENTER 10
+#define F10 18
+#define CTRL_U 21
+#define ESC 27
+
 void exitprog();
 double wtime();
 struct plaerstr **createstr (int);

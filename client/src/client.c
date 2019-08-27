@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
                 ch = getch();
                 // printw("%d", ch);;
                 switch (ch) {
-                    case 7:
+                    case BACKSPACE:
                         if (err > 0) {
                             err--;
                             if (err == 0) uiEntryBack(0);
@@ -313,21 +313,21 @@ int main(int argc, char *argv[]) {
                             uiEntryBack(0);
                         }
                         break;
-                    case 21:
+                    case CTRL_U:
                         uiEntryBack(0);
                         uiEntryClear();
                         err = 0;
                         j = 0;
                         break;
-                    case 27:
-                    case 18:
+                    case ESC:
+                    case F10:
                         exitprog();
                         break;
-                    case 4:
-                    case 2:
-                    case 5:
-                    case 3:
-                    case 10:
+                    case ARROW_L:
+                    case ARROW_R:
+                    case ARROW_U:
+                    case ARROW_D:
+                    case ENTER:
                         break;
                     default:
                         if (ch == text[i][j] && err == 0) {
@@ -373,13 +373,13 @@ int main(int argc, char *argv[]) {
         while (!exit_lobby) {
             ch = getch();
             switch (ch) {
-                    case 27:
+                    case ESC:
                         exitprog();
                         break;
-                    case 18:
+                    case F10:
                         exitprog();
                         break;
-                    case 10:
+                    case ENTER:
                         exit_lobby = 1;
                         break;
                     default:

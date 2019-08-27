@@ -47,7 +47,7 @@ int getNewText (char text[][MAX_WORD_LEN]) {
 
     FILE *file = fopen(path, "r");
     if (file) {
-        char c;
+        short int c; // for arm
         c = fgetc(file);
         int i = 0, j = 0, tempJ = 0;
         while ( c != EOF ) {
