@@ -47,7 +47,7 @@ void uiRun(){
     }
     if (uimod == MODFINISH){ // next start
         delwin(win_prog);
-        clear();
+        erase();
         refresh();
     }
     curs_set(0); // off cursor (0 = invisible mod)
@@ -68,7 +68,7 @@ void uiRun(){
 int textprint(char text[][MAX_WORD_LEN], int printoff, int lowline){
     int i = 0, j = 0, sltext = 1, textlim = SCMAX;
     if (printoff == 0)
-        wclear(win_text);
+        werase(win_text);
     while(text[i][0] != '\0'){
         textlim -= strlen(text[i]);
         if (textlim <= 0){
@@ -114,7 +114,7 @@ void timer(int sltext){
         wrefresh(win_text);
         wrefresh(win_entry);  // cursor move
         sleep(SLEEPTIME);
-        wclear(win_text);
+        werase(win_text);
         i--;
     }
     wrefresh(win_text);
@@ -126,7 +126,7 @@ void uiStartBattle(char text[][MAX_WORD_LEN]){
         return;
     pthread_mutex_lock(&ncur);
 
-    wclear(win_text); // clear and del hourglass
+    werase(win_text); // clear and del hourglass
     wrefresh(win_text);
     delwin(win_text);
 
@@ -175,7 +175,7 @@ void uiFinishBattle(){
     delwin(win_text);
     delwin(win_entry);
     delwin(win_prog);
-    clear();
+    erase();
 
     mvhline(SLSTAT + 1, 0, 0, SCMAX+2);
     win_prog = newwin(SLMAX - SLSTAT - 1, SCMAX, SLSTAT + 2, 1);
@@ -192,7 +192,7 @@ void uiStatPrint(int speed, int miss, double time, int online){
     int precision = 0;
     if (uimod == MODFINISH)
         precision = 2;
-    wclear(win_stat);
+    werase(win_stat);
     wprintw(win_stat, "SPEED %-3d  MISS %-3d  TIME %-3.*f", speed, miss, precision, time);
     mvwprintw(win_stat, 0, SCMAX-9, "ONLINE %-d", online);
     wrefresh(win_stat);
@@ -202,7 +202,7 @@ void uiStatPrint(int speed, int miss, double time, int online){
 }
 
 void entryprint(int i){
-    wclear(win_entry);
+    werase(win_entry);
     if (i == 1)
         wattron(win_entry, A_STANDOUT);
     else
@@ -235,7 +235,7 @@ void uiEntryClear(){
         return;
     pthread_mutex_lock(&ncur);
     memset(entrybuffer, 0, MAX_WORD_LEN);
-    wclear(win_entry);
+    werase(win_entry);
     wrefresh(win_entry);
     pthread_mutex_unlock(&ncur);
 }
@@ -244,7 +244,7 @@ void uiProgPrint(struct plaerstr **p, int n){
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
-    wclear(win_prog);
+    werase(win_prog);
     int i;
     for (i = 0; i < n; i++){
         if (p[i]->name[0] != '\0'){
@@ -269,7 +269,7 @@ void uiProgPrint2(struct stat stats[], int num, int id){
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
-    wclear(win_prog);
+    werase(win_prog);
     int i_real = 0, i_normal = 0, lineprint = 1;
     while (i_real < num){
         if (stats[i_real].name[0] != '\0'){
@@ -301,7 +301,7 @@ void uiHelpPrint(char texthelp[]){
     if (uimod != MODRUN && uimod != MODBATLLE && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
-    wclear(win_help);
+    werase(win_help);
     wprintw(win_help," %-*s", COLS-1, texthelp);
     wrefresh(win_help);
     if (uimod == MODBATLLE)
