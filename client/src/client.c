@@ -3,6 +3,8 @@
 
 #define h_addr h_addr_list[0] /*  for backward compatibility */
 
+const int token = TOKEN;
+
 int player_id = 0;
 int num_words = 0;
 int progress = 0;
@@ -76,6 +78,8 @@ int reset_sender = 0;
 void *sender () {
     char zero = '\0';
     int bytes = 0;
+
+    bytes = send(sockfd, &token, sizeof(token), 0);
 
     bytes = recv(sockfd, &player_id, sizeof(player_id), 0);
     // printf("id? %db player id = %d\n", bytes, player_id);
@@ -233,7 +237,7 @@ int main(int argc, char *argv[]) {
     if (ppasswd == NULL) {
         printf("ERROR no such username\n");
     }
-    strncpy(username, ppasswd->pw_name, MAX_USERNAME);
+    sprintf(username, "%s", ppasswd->pw_name);
     // printf("User name: %s\n", ppasswd->pw_name);
 
     // p = createstr(MAX_PLAYERS);

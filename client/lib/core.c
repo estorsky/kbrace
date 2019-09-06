@@ -21,8 +21,8 @@ struct plaerstr **createstr (int n) {
 
 void exitprog() {
     pthread_cancel(tid[0]);
-    char bye_text[100] = "good bye, ";
-    strncat(bye_text, username, sizeof(bye_text));
+    char bye_text[MAX_USERNAME+10];
+    sprintf(bye_text, "%s%s", "good bye, ", username);
     uiHelpPrint(bye_text);
     state = 'q';
     pthread_join(tid[1], NULL);

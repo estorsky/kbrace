@@ -4,6 +4,7 @@
 #define true 1
 #define false 0
 
+#define TOKEN 975434872
 #define PORT 1337
 #define MAX_PLAYERS 30
 #define MAX_USERNAME 10

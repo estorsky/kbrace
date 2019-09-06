@@ -3,9 +3,10 @@
 #include <dirent.h>
 
 int getNewText (char text[][MAX_WORD_LEN]) {
-    char path[256] = "./server/texts/";
     DIR *d;
     struct dirent *dir;
+    char path[sizeof(dir->d_name)+strlen(PATH_TO_TEXTS)];
+    sprintf(path, "%s", PATH_TO_TEXTS);
     d = opendir(path);
     if (d) {
         int num_files = 0;
@@ -32,7 +33,7 @@ int getNewText (char text[][MAX_WORD_LEN]) {
                         continue;
                     }
                 } else {
-                    strncat(path, dir->d_name, sizeof(path));
+                    sprintf(path, "%s%s", PATH_TO_TEXTS, dir->d_name);
                     break;
                 }
             }
@@ -68,7 +69,19 @@ int getNewText (char text[][MAX_WORD_LEN]) {
         text[i][0] = '\0';
         fclose(file);
     } else return 1;
-    printf("selected text %s\n", path);
+    printf("(%s) selected text %s\n", curTime(), path);
     return 0;
+}
+
+const char* curTime() {
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    static char result[26];
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    sprintf(result, "%s", asctime(timeinfo));
+    result[strlen(result)-1] = '\0';
+    return result;
 }
 

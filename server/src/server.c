@@ -12,8 +12,8 @@
 
 char text[MAX_WORDS][MAX_WORD_LEN] = {{"404"}};
 
-int session_num_users = 0;
 int session_id = 0;
+int session_num_users = 0;
 int online_users = 0;
 
 pthread_mutex_t for_cond = PTHREAD_MUTEX_INITIALIZER;
@@ -31,7 +31,16 @@ void *player (void *arg) {
     struct stat player_stat;
     int usr_session_id = 0;
     int bytes = 0;
-    printf("# player id %d connected\n", player_id);
+    int get_token = 0;
+
+    bytes = recv(fd, &get_token, sizeof(get_token), 0);
+    if (get_token != TOKEN) {
+        printf("(%s) # player id %d disconnect (bad token)\n", curTime(), player_id);
+        close(fd);
+        return 0;
+    } else {
+        printf("(%s) # player id %d connected\n", curTime(), player_id);
+    }
 
     pthread_mutex_lock(&ou);
     online_users++;
@@ -108,7 +117,9 @@ void *player (void *arg) {
             usleep(500000);
         }
 
-        printf("## session #%d player %s end race: id %3d, speed %3d, miss %3d, time %.2f\n",
+        printf("(%s) ## session #%d player %s end race:\n"
+                "\tid %3d, speed %3d, miss %3d, time %.2f\n",
+                curTime(),
                 usr_session_id,
                 player_stat.name,
                 player_stat.id,
@@ -118,8 +129,8 @@ void *player (void *arg) {
 
         if (stats[usr_session_id][player_id].state == 'q' ||
                 bytes <= 0 || num_pack > LIM_PACK) {
-            printf("player %s id %d disconnected\n",
-                    player_stat.name, player_stat.id);
+            printf("(%s) player %s id %d disconnected\n",
+                    curTime(), player_stat.name, player_stat.id);
             break;
             // exit_session = 1;
         }
@@ -134,13 +145,12 @@ void *player (void *arg) {
 }
 
 void *session (void *arg) {
-    printf("session thread start\n");
+    printf("(%s) session thread start\n", curTime());
     pthread_mutex_lock(&start_play);
     char zero = '\0';
 
     while (true) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            // strncpy(stats[session_id][i].name, &zero, MAX_USERNAME);
             stats[session_id][i].name[0] = '\0';
             stats[session_id][i].id = 0;
             stats[session_id][i].speed = 0;
@@ -151,9 +161,9 @@ void *session (void *arg) {
         }
 
         pthread_mutex_lock(&start_play);
-        printf("new iteration session\n");
+        printf("(%s) new iteration session\n", curTime());
 
-        printf("timer start %d sec\n", DELAY_WAIT);
+        printf("(%s) timer start %d sec\n", curTime(), DELAY_WAIT);
         sleep(DELAY_WAIT/2);
         getNewText(text);
         sleep(DELAY_WAIT/2);
@@ -162,7 +172,9 @@ void *session (void *arg) {
         pthread_cond_broadcast(&cond);
         pthread_mutex_unlock(&for_cond);
 
-        printf("session #%d starting! players in session: %d, total players:%d\n",
+        printf("(%s) session #%d starting!\n"
+                "\tplayers in session: %d, total players:%d\n",
+                curTime(),
                 session_id,
                 session_num_users,
                 online_users);

@@ -15,13 +15,16 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include <time.h>
 // #include <error.h>
 
 #define DELAY_WAIT 20
 #define LIM_PACK 900
 #define NUM_STRUCTS 100
+#define PATH_TO_TEXTS "./server/texts/"
 
 int getNewText(char [][MAX_WORD_LEN]);
+const char* curTime();
 
 #endif
 
