@@ -1,5 +1,5 @@
 all:
-	ctags -R .
+	-ctags -R .
 	cd server; make all
 	cd client; make all
 
