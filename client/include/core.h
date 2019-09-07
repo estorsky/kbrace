@@ -7,8 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <pthread.h>
-#include <ncursesw/curses.h>
-// #include <ncurses.h>
+#include <ncurses.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -34,7 +33,6 @@
 
 void exitprog();
 double wtime();
-struct plaerstr **createstr (int);
 void hdl (int);
 
 extern char username[MAX_USERNAME];

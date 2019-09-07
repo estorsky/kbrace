@@ -238,13 +238,7 @@ int main(int argc, char *argv[]) {
         socket_fds[i] = accept(socket_fds[0], (struct sockaddr *) &socket_addr[i], &clilen);
         if (socket_fds[i] < 0)
             printf("ERROR on accept\n");
-        //Reset game if someone won
-        /* if(someone_won){
-            printf("asdf\n");
-            someone_won = 0;
-        } */
         pthread_create(&tid[i], NULL, player, &socket_fds[i]);
-        // make_thread(&gameplay, &socket_fds[i]);
     }
 
     close(socket_fds[0]);

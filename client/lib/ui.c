@@ -240,32 +240,7 @@ void uiEntryClear(){
     pthread_mutex_unlock(&ncur);
 }
 
-void uiProgPrint(struct plaerstr **p, int n){
-    if (uimod != MODBATLLE && uimod != MODFINISH)
-        return;
-    pthread_mutex_lock(&ncur);
-    werase(win_prog);
-    int i;
-    for (i = 0; i < n; i++){
-        if (p[i]->name[0] != '\0'){
-            mvwprintw(win_prog, i, 0, "%s", p[i]->name);
-            if (p[i]->prog == 100)
-                mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
-            else{
-                mvwprintw(win_prog, i, MAX_USERNAME, "[");
-                mvwhline(win_prog, i, MAX_USERNAME+1, '=', (int)(((float)SCMAX-MAX_USERNAME-7)/100*p[i]->prog));
-                mvwprintw(win_prog, i, SCMAX-5, "]");
-            }
-            mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);
-        }
-    }
-    wrefresh(win_prog);
-    if (uimod == MODBATLLE)
-        wrefresh(win_entry); // cursor move
-    pthread_mutex_unlock(&ncur);
-}
-
-void uiProgPrint2(struct stat stats[], int num, int id){
+void uiProgPrint(struct stat stats[], int num, int id){
     if (uimod != MODBATLLE && uimod != MODFINISH)
         return;
     pthread_mutex_lock(&ncur);
@@ -315,3 +290,29 @@ void uiEnd(){
     uimod = MODOFF;
     pthread_mutex_unlock(&ncur);
 }
+
+/* void uiProgPrint(struct plaerstr **p, int n){
+    if (uimod != MODBATLLE && uimod != MODFINISH)
+        return;
+    pthread_mutex_lock(&ncur);
+    werase(win_prog);
+    int i;
+    for (i = 0; i < n; i++){
+        if (p[i]->name[0] != '\0'){
+            mvwprintw(win_prog, i, 0, "%s", p[i]->name);
+            if (p[i]->prog == 100)
+                mvwprintw(win_prog, i, MAX_USERNAME, "SPEED %-3d  MISS %-3d  TIME %-3.2f", p[i]->speed, p[i]->miss, p[i]->time);
+            else{
+                mvwprintw(win_prog, i, MAX_USERNAME, "[");
+                mvwhline(win_prog, i, MAX_USERNAME+1, '=', (int)(((float)SCMAX-MAX_USERNAME-7)/100*p[i]->prog));
+                mvwprintw(win_prog, i, SCMAX-5, "]");
+            }
+            mvwprintw(win_prog, i, SCMAX-2, "%c", p[i]->state);
+        }
+    }
+    wrefresh(win_prog);
+    if (uimod == MODBATLLE)
+        wrefresh(win_entry); // cursor move
+    pthread_mutex_unlock(&ncur);
+} */
+

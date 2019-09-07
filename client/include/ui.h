@@ -3,15 +3,6 @@
 
 #include "../include/core.h"
 
-struct plaerstr{
-    char name[MAX_USERNAME];
-    int prog;
-    int speed;
-    int miss;
-    double time;
-    char state;
-};
-
 void uiInit();
 void uiRun();
 void uiStartBattle(char [][MAX_WORD_LEN]);
@@ -21,8 +12,7 @@ void uiStatPrint(int, int, double, int);
 void uiEntryPrint(char, int);
 void uiEntryBack(int);
 void uiEntryClear();
-void uiProgPrint(struct plaerstr **, int n);
-void uiProgPrint2(struct stat stats[], int num, int id);
+void uiProgPrint(struct stat stats[], int num, int id);
 void uiHelpPrint(char []);
 void uiEnd();
 
