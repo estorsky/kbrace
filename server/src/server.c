@@ -23,11 +23,20 @@ pthread_mutex_t start_play = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t nu = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ou = PTHREAD_MUTEX_INITIALIZER;
 
+int socket_fds[MAX_PLAYERS + 1];
+char active_players[MAX_PLAYERS];
+
 struct stat stats[NUM_STRUCTS][MAX_PLAYERS];
 
-void *player (void *arg) {
-    int fd = *(int*) arg;
-    int player_id = fd-3;
+struct arg_struct {
+    int arg1;
+    int arg2;
+};
+
+void *player (void *arguments) {
+    struct arg_struct *args = arguments;
+    int fd = args -> arg1;
+    int player_id = args -> arg2;
     struct stat player_stat;
     int usr_session_id = 0;
     int bytes = 0;
@@ -140,6 +149,7 @@ void *player (void *arg) {
     online_users--;
     pthread_mutex_unlock(&ou);
 
+    active_players[player_id] = 0;
     close(fd);
     return 0;
 }
@@ -191,12 +201,22 @@ void *session (void *arg) {
     }
 }
 
-int socket_fds[MAX_PLAYERS];
-
 void hdl (int sig) {
     close(socket_fds[0]);
     printf("server killed\n");
     exit(0);
+}
+
+int getFreeIdPlayer() {
+    int id = -1;
+    for(int i = 0; i < MAX_PLAYERS; i++) {
+        if (active_players[i] == 0 ) {
+            active_players[i] = 1;
+            id = i;
+            break;
+        }
+    }
+    return id;
 }
 
 int main(int argc, char *argv[]) {
@@ -211,6 +231,10 @@ int main(int argc, char *argv[]) {
     pthread_t tid[MAX_PLAYERS];
     struct sockaddr_in socket_addr[MAX_PLAYERS];
     int i;
+
+    for (i = 0; i < MAX_PLAYERS; i++) {
+        active_players[i] = 0;
+    }
 
     socket_fds[0] = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fds[0] < 0) {
@@ -233,12 +257,27 @@ int main(int argc, char *argv[]) {
 
     pthread_create(&tid[0], NULL, session, NULL);
 
-    for(i = 1;; i++){
+    struct arg_struct args;
+    int id = 0;
+    while (true) {
+        id = getFreeIdPlayer();
+        if (id < 0) {
+            sleep(10);
+            continue;
+        }
+
         //Accepting an incoming connection request
-        socket_fds[i] = accept(socket_fds[0], (struct sockaddr *) &socket_addr[i], &clilen);
-        if (socket_fds[i] < 0)
+        socket_fds[id+1] = accept(socket_fds[0], (struct sockaddr *) &socket_addr[id], &clilen);
+        if (socket_fds[id+1] < 0) {
             printf("ERROR on accept\n");
-        pthread_create(&tid[i], NULL, player, &socket_fds[i]);
+            sleep(1);
+            active_players[id] = 0;
+            continue;
+        }
+
+        args.arg1 = socket_fds[id+1];
+        args.arg2 = id;
+        pthread_create(&tid[id], NULL, player, (void *)&args);
     }
 
     close(socket_fds[0]);
