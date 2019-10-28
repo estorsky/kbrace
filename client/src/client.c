@@ -26,7 +26,7 @@ struct stat player_stat;
 struct plaerstr **p;
 
 int                 sockfd;
-struct sockaddr_in  serv_addr;
+struct sockaddr_in  serv_addr = { 0 };
 struct hostent*     server;
 char                key_buffer;
 
@@ -184,7 +184,6 @@ int main(int argc, char *argv[]) {
         local = 1;
     }
 
-    bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr,
             (char *)&serv_addr.sin_addr.s_addr,

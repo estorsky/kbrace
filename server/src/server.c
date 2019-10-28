@@ -45,6 +45,7 @@ void *player (void *arguments) {
     bytes = recv(fd, &get_token, sizeof(get_token), 0);
     if (get_token != TOKEN) {
         printf("(%s) # player id %d disconnect (bad token)\n", curTime(), player_id);
+        active_players[player_id] = 0;
         close(fd);
         return 0;
     } else {
@@ -229,7 +230,7 @@ int main(int argc, char *argv[]) {
     signal(SIGPIPE, SIG_IGN);
 
     pthread_t tid[MAX_PLAYERS];
-    struct sockaddr_in socket_addr[MAX_PLAYERS];
+    struct sockaddr_in socket_addr[MAX_PLAYERS] = { 0 };
     int i;
 
     for (i = 0; i < MAX_PLAYERS; i++) {
@@ -242,7 +243,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    bzero((char *) &socket_addr[0], sizeof(socket_addr[0]));
     socket_addr[0].sin_family = AF_INET;
     socket_addr[0].sin_addr.s_addr = INADDR_ANY;
     socket_addr[0].sin_port = htons(PORT);
