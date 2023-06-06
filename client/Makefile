@@ -1,7 +1,7 @@
 CC = gcc
 FLAGS = -pedantic -Wall -Wextra -O2 # -Werror
 CFLAGS = -g
-LIBS = -lpthread $(shell ncursesw5-config --libs) # -static
+LIBS = -lpthread $(shell ncursesw6-config --libs) # -static
 SRCDIR = src
 LIBDIR = lib
 OBJDIR = obj
